@@ -1,0 +1,35 @@
+# 📌 Ignorar el entorno virtual
+envrecplus/
+venv/
+.venv/
+
+# 📌 Ignorar archivos de configuración sensibles
+.env
+*.env
+
+# 📌 Ignorar caché de Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# 📌 Ignorar archivos de dependencias generados
+Pipfile
+Pipfile.lock
+poetry.lock
+
+# 📌 Ignorar logs y archivos temporales
+*.log
+*.sqlite3
+instance/
+*.db
+db.sqlite3
+
+# 📌 Ignorar configuraciones de VS Code
+.vscode/
+
+# 📌 Ignorar archivos de depuración
+debug.log
+nohup.out
+
+# 📌 Ignorar archivos de Docker (si en el futuro usas D
