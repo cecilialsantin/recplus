@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RecPlus - Dashboard</title>
+   
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <div class="container">
+        <h2>Bienvenido, <span id="username-display"></span></h2>
+        
+        <div id="admin-section" style="display: none;">
+            <h3>Registrar Nuevo Usuario</h3>
+            <input type="text" id="new-username" placeholder="Nuevo Usuario">
+            <input type="password" id="new-password" placeholder="Contraseña">
+            <select id="new-role">
+                <option value="deposito">Depósito</option>
+                <option value="garantia">Garantía de Calidad</option>
+            </select>
+            <button onclick="registrarUsuario()">Registrar Usuario</button>
+            <p id="admin-message"></p>
+        </div>
+
+        <div id="scan-section">
+            <h3>Escanear Producto</h3>
+            <input type="text" id="codigo" placeholder="Código de barras">
+            <input type="text" id="nro_lote" placeholder="Número de Lote">
+            <input type="date" id="fecha_vto" placeholder="Fecha de Vencimiento">
+            <input type="number" id="temperatura" placeholder="Temperatura">
+            <input type="number" id="cantidad_ingresada" placeholder="Cantidad">
+            <input type="text" id="nro_partida_asignada" placeholder="Número de Partida">
+            <button onclick="escanearProducto()">Registrar Producto</button>
+            <p id="producto-mensaje"></p>
+        </div>
+
+        <button onclick="logout()">Cerrar Sesión</button>
+    </div>
+
+    <script defer src="/static/script.js"></script>
+</body>
+</html>

@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RecPlus - Inicio</title>
+ 
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <div class="container">
+        <img src="/static/logo.png" alt="RecPlus Logo" class="logo">
+        <h2>Bienvenido a RecPlus</h2>
+
+        <div id="login-form">
+            <h3>Iniciar Sesión</h3>
+            <input type="text" id="username" placeholder="Usuario">
+            <input type="password" id="password" placeholder="Contraseña">
+            <button onclick="login()">Iniciar Sesión</button>
+            <p id="login-error" style="color: red;"></p>
+        </div>
+    </div>
+
+    <script defer src="/static/script.js"></script>
+</body>
+</html>

@@ -2,31 +2,50 @@ from flask import request, jsonify
 from flask_login import login_user, login_required, logout_user, current_user
 from config import app, db
 from models import Usuario, Producto, Recepcion
+from flask import render_template
 
 # 📌 Ruta para verificar que el backend está funcionando
 @app.route('/ping', methods=['GET'])
 def ping():
     return jsonify({"mensaje": "✅ API funcionando correctamente"})
 
+# 📌 Ruta para la página principal (Login)
+@app.route('/')
+def index():
+    return render_template('index.html')
 
-# 📌 Ruta para registrar un nuevo usuario (solo para pruebas iniciales)
+# 📌 Ruta para la página de Home (Después del Login)
+@app.route('/home')
+@login_required
+def home():
+    return render_template('home.html')
+
+# 📌 Ruta para registrar nuevos usuarios (Solo el Admin puede hacerlo)
 @app.route('/register', methods=['POST'])
+@login_required
 def register():
+    # Solo el admin puede registrar usuarios
+    if current_user.rol != "admin":
+        return jsonify({"error": "⚠️ Solo el admin puede registrar nuevos usuarios."}), 403
+
     data = request.json
     username = data.get("username")
     password = data.get("password")
+    rol = data.get("rol")  # Puede ser "deposito" o "garantia"
+
+    if not rol or rol not in ["deposito", "garantia"]:
+        return jsonify({"error": "⚠️ El rol debe ser 'deposito' o 'garantia'"}), 400
 
     if Usuario.query.filter_by(username=username).first():
-        return jsonify({"error": "⚠️ El usuario ya existe."}), 400
+        return jsonify({"error": "⚠️ Este usuario ya existe."}), 400
 
-    nuevo_usuario = Usuario(username=username)
+    nuevo_usuario = Usuario(username=username, rol=rol)
     nuevo_usuario.set_password(password)
 
     db.session.add(nuevo_usuario)
     db.session.commit()
 
-    return jsonify({"mensaje": "✅ Usuario registrado exitosamente"})
-
+    return jsonify({"mensaje": "✅ Usuario registrado exitosamente", "usuario": username, "rol": rol})
 
 # 📌 Ruta para iniciar sesión
 @app.route('/login', methods=['POST'])
@@ -35,13 +54,22 @@ def login():
     username = data.get("username")
     password = data.get("password")
 
+    # Buscar usuario por username
     usuario = Usuario.query.filter_by(username=username).first()
 
-    if usuario and usuario.check_password(password):
-        login_user(usuario)
-        return jsonify({"mensaje": "✅ Login exitoso", "usuario": usuario.username})
+    if not usuario:
+        return jsonify({"error": "⚠️ Usuario incorrecto"}), 403
 
-    return jsonify({"error": "⚠️ Usuario o contraseña incorrectos"}), 401
+    if not usuario.check_password(password):
+        return jsonify({"error": "⚠️ Contraseña incorrecta"}), 401
+
+    login_user(usuario)
+
+    return jsonify({
+        "mensaje": "✅ Login exitoso",
+        "usuario": usuario.username,
+        "rol": usuario.rol  # ✅ Agregar el rol del usuario en la respuesta
+    })
 
 
 # 📌 Ruta para cerrar sesión
