@@ -1,17 +1,23 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RecPlus - Dashboard</title>
-   
-    <link rel="stylesheet" href="/static/styles.css">
-</head>
-<body>
-    <div class="container">
-        <h2>Bienvenido, <span id="username-display"></span></h2>
-        
-        <div id="admin-section" style="display: none;">
+{% extends "base.html" %}
+
+{% block title %}RecPlus - Dashboard{% endblock %}
+
+{% block content %}
+    <!-- Contenedor de bienvenida -->
+    <div class="welcome-bar">
+        <h2>
+            <i class="fas fa-user"></i>
+            <span id="username-display"></span>
+        </h2>
+        <button class="logout-btn" onclick="logout()">
+            <i class="fas fa-sign-out-alt"></i> Logout
+        </button>        
+    </div>
+    
+
+    <!-- Contenedor del formulario -->
+    <div class="home-container">
+        <div id="admin-section" class="form-box" style="display: none;">
             <h3>Registrar Nuevo Usuario</h3>
             <input type="text" id="new-username" placeholder="Nuevo Usuario">
             <input type="password" id="new-password" placeholder="Contraseña">
@@ -23,7 +29,7 @@
             <p id="admin-message"></p>
         </div>
 
-        <div id="scan-section">
+        <div id="scan-section" class="form-box">
             <h3>Escanear Producto</h3>
             <input type="text" id="codigo" placeholder="Código de barras">
             <input type="text" id="nro_lote" placeholder="Número de Lote">
@@ -34,10 +40,7 @@
             <button onclick="escanearProducto()">Registrar Producto</button>
             <p id="producto-mensaje"></p>
         </div>
-
-        <button onclick="logout()">Cerrar Sesión</button>
     </div>
 
-    <script defer src="/static/script.js"></script>
-</body>
-</html>
+
+{% endblock %}

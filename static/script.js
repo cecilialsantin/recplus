@@ -34,6 +34,11 @@ async function login() {
 
 // 📌 Cargar información del usuario en home.html
 document.addEventListener("DOMContentLoaded", () => {
+    // Verificar si estamos en home.html antes de ejecutar
+    if (window.location.pathname !== "/home") {
+        return;
+    }
+
     const username = sessionStorage.getItem("usuario");
     const rol = sessionStorage.getItem("rol");
 
@@ -55,6 +60,7 @@ document.addEventListener("DOMContentLoaded", () => {
         adminSection.style.display = rol === "admin" ? "block" : "none";
     }
 });
+
 
 // 📌 Cerrar sesión
 async function logout() {
