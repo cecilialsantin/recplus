@@ -7,7 +7,7 @@
     
     <title>{% block title %}RecPlus{% endblock %}</title> <!-- 📌 Título dinámico -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-
+    <script src="https://kit.fontawesome.com/e41da13a77.js" crossorigin="anonymous"></script>
     <link rel="stylesheet" href="/static/styles.css">
    
 </head>
@@ -20,10 +20,19 @@
     </div>
 
     <!-- 🔹 Contenido dinámico -->
-    <div class="container">
+    <div class="main-content">
         {% block content %}{% endblock %}
     </div>
 
+   
+
+    <footer class="footer">
+        <p>
+            RecPlus creado por <strong>cecil <i class="fa-solid fa-worm"></i> <span>IA</span></strong> 
+            para <strong>Felsan SRL</strong>. 2025. Todos los derechos reservados.
+        </p>
+        
+    </footer>
     <script defer src="/static/script.js"></script>
 </body>
 </html>

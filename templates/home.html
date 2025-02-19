@@ -3,6 +3,7 @@
 {% block title %}RecPlus - Dashboard{% endblock %}
 
 {% block content %}
+
     <!-- Contenedor de bienvenida -->
     <div class="welcome-bar">
         <h2>
@@ -21,9 +22,9 @@
             <h3>Registrar Nuevo Usuario</h3>
             <input type="text" id="new-username" placeholder="Nuevo Usuario">
             <input type="password" id="new-password" placeholder="Contraseña">
-            <select id="new-role">
-                <option value="deposito">Depósito</option>
-                <option value="garantia">Garantía de Calidad</option>
+            <select id="new-rol">
+                <option value="deposito">deposito</option>
+                <option value="garantia">garantia</option>
             </select>
             <button onclick="registrarUsuario()">Registrar Usuario</button>
             <p id="admin-message"></p>
@@ -42,5 +43,5 @@
         </div>
     </div>
 
-
 {% endblock %}
+
