@@ -79,7 +79,6 @@ async function logout() {
 }
 
 // 📌 Función para registrar usuario
-// 📌 Función para registrar usuario
 document.addEventListener("DOMContentLoaded", function() {
     window.registrarUsuario = async function() {
         const newUsername = document.getElementById("new-username").value.trim();
@@ -134,3 +133,85 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     };
 });
+
+
+//🔹 Función para obtener una recepcion y mostrarla en tabla
+async function cargarRecepcion() {
+    const recepcionId = document.getElementById("id-recepcion").value.trim();
+    const mensaje = document.getElementById("mensaje-carga");
+    const tablaRecepcion = document.querySelector("#tabla-recepcion tbody");
+
+    if (!recepcionId) {
+        mensaje.textContent = "⚠️ Ingrese un ID de recepción válido.";
+        return;
+    }
+
+    mensaje.textContent = "⏳ Cargando recepción...";
+
+    try {
+        const response = await fetch(`/recepcion/${recepcionId}`, {
+            method: "GET",
+            headers: { "Content-Type": "application/json" }
+        });
+
+        const data = await response.json();
+        if (response.ok) {
+            mensaje.textContent = "✅ Recepción cargada correctamente.";
+
+            // Limpiar la tabla antes de agregar los nuevos datos
+            tablaRecepcion.innerHTML = "";
+
+            // Llenar la tabla con los productos de la recepción
+            data.productos.forEach(producto => {
+                const fila = document.createElement("tr");
+                fila.innerHTML = `
+                    <td>${producto.codigo}</td>
+                    <td>${producto.nro_lote}</td>
+                    <td>${producto.fecha_vto}</td>
+                    <td>${producto.temperatura}</td>
+                    <td>${producto.cantidad_ingresada}</td>
+                    <td>${producto.nro_partida_asignada}</td>
+                `;
+                tablaRecepcion.appendChild(fila);
+            });
+
+        } else {
+            mensaje.textContent = data.error || "⚠️ No se encontró la recepción.";
+        }
+    } catch (error) {
+        console.error("Error:", error);
+        mensaje.textContent = "❌ Error al comunicarse con el servidor.";
+    }
+}
+
+// 🔹 Función para iniciar Selenium en el backend y completar el formulario en Loyal
+async function iniciarSelenium() {
+    const codigoFormulario = document.getElementById("codigo-formulario").value.trim();
+    const mensaje = document.getElementById("mensaje-carga");
+
+    if (!codigoFormulario) {
+        mensaje.textContent = "⚠️ Ingrese un código de formulario válido.";
+        return;
+    }
+
+    mensaje.textContent = "⏳ Procesando...";
+
+    try {
+        const response = await fetch("/iniciarSelenium", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ codigo: codigoFormulario })
+        });
+
+        const data = await response.json();
+        if (response.ok) {
+            mensaje.textContent = "✅ Formulario completado en Loyal.";
+        } else {
+            mensaje.textContent = data.error || "⚠️ No se pudo completar el formulario.";
+        }
+    } catch (error) {
+        console.error("Error:", error);
+        mensaje.textContent = "❌ Error al comunicarse con el servidor.";
+    }
+}
+

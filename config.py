@@ -5,6 +5,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
 from flask_login import LoginManager
 
+
 # 🔹 Cargar variables de entorno desde .env
 load_dotenv()
 
@@ -29,9 +30,11 @@ login_manager = LoginManager(app)
 login_manager.login_view = "index"  # 🔹 Página de login si no está autenticado
 login_manager.session_protection = "strong"
 
-# 🔹 Cargar usuario por ID para Flask-Login
-from models import Usuario
 
+# 🔹 Cargar usuario por ID para Flask-Login
+# 🔹 Cargar usuario por ID para Flask-Login (Evita el ImportError de `db`)
 @login_manager.user_loader
 def load_user(user_id):
+    from models import Usuario  # ⬅️ Importar aquí para evitar el ciclo
     return Usuario.query.get(int(user_id))
+

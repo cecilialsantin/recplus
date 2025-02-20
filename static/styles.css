@@ -32,6 +32,12 @@ body {
     margin-bottom: 100px; /* Espacio entre el header y el formulario */
 }
 
+.tagline {
+    font-size: 0.9em;
+    font-weight: 300;
+    color: rgba(255, 255, 255, 0.9); /* Un tono blanco sutil */
+}
+
 .header-bar h2 {
     margin: 0;
     font-size: 1.5em;
@@ -123,7 +129,7 @@ body {
     padding: 10px 20px;
     border-radius: 8px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-    width: 80%; /* Ocupa todo el ancho disponible */
+    width: 120%; /* Ocupa todo el ancho disponible */
     max-width: 600px; /* Para que no sea demasiado grande en pantallas grandes */
     margin: 20px; /* Centrada horizontalmente y con margen superior */
 }
@@ -246,3 +252,110 @@ footer {
     margin-left:1px;
 }
 
+/* Automatizacion */
+
+/* 🔹 Botón sutil de automatización */
+.selenium-btn {
+    background: #95cea5;
+    color: #666; /* Gris oscuro para un look sutil */
+    font-size: 0.9em;
+    font-weight: normal;
+    border: 1px solid #ccc; /* Borde fino */
+    padding: 6px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: background 0.2s ease-in-out, color 0.2s ease-in-out;
+}
+
+/* 🔹 Efecto al pasar el mouse */
+.selenium-btn:hover {
+    background: rgba(0, 0, 0, 0.05);
+    color: #333; /* Un poco más oscuro */
+}
+
+/* 🔹 Ícono */
+.selenium-btn i {
+    font-size: 1.1em;
+    color: #e2a5da; /* Verde suave */
+}
+
+
+
+/* 🔹 Contenedor de la tabla para hacerla más ancha */
+.table-container {
+    width: 100%;
+    max-width: 900px; /* Ajustar a un tamaño más grande */
+    overflow-x: auto; /* Permite desplazamiento horizontal si es necesario */
+    margin: 0 auto; /* Centra la tabla */
+    padding: 10px;
+    margin-bottom: 20px;
+}
+
+/* 🔹 Estilo del h3 dentro de la tabla */
+.table-container h3 {
+    text-align: center;
+    font-size: 1.4em;
+    font-weight: 500;
+    color: #444;
+    margin-bottom: 10px;
+    padding: 8px;
+    background-color: #e9f5ee; /* Un fondo suave */
+    border-radius: 5px;
+    border-left: 4px solid #95cea5; /* Línea decorativa lateral */
+    display: inline-block;
+}
+
+/* 🔹 Estilos para la tabla */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+/* 🔹 Ajuste de columnas para más espacio */
+th, td {
+    border: 1px solid #ddd;
+    padding: 12px;
+    text-align: center;
+    white-space: nowrap; /* Evita que el texto se corte en varias líneas */
+}
+
+/* 🔹 Estilos para la cabecera */
+th {
+    background-color: #95cea5;
+    color: white;
+    font-weight: 500;
+    font-size: 1em;
+}
+
+/* 🔹 Filas alternadas para mejor visualización */
+tbody tr:nth-child(even) {
+    background-color: #f4f4f4;
+}
+
+/* 🔹 Efecto hover */
+tbody tr:hover {
+    background-color: rgba(149, 206, 165, 0.3);
+}
+
+/* 🔹 Botón para procesar carga automática */
+.btn-procesar {
+    width: 20%;
+    max-width: 600px;
+    padding: 5px;
+    background-color: #2b6aad;
+    color: white;
+    font-size: 10px;;
+    border: none;
+    border-radius: 5px;
+    font-size: 1em;
+    cursor: pointer;
+    transition: background 0.2s ease-in-out;
+}
+
+.btn-procesar:hover {
+    background-color: #c56a1c;
+}

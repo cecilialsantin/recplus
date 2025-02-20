@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}Automatización en Loyal{% endblock %}
+
+{% block content %}
+
+<div class="welcome-bar">
+    <h2>Automatización LOYAL</h2>
+
+    <button class="btn-procesar" onclick="iniciarSelenium()"><i class="fa-solid fa-robot"></i>
+        Loyal QMS</button>
+</div>
+  
+
+    <!-- Formulario para ingresar el código del formulario en Loyal -->
+    <div class="form-box">
+        <h3>Ingrese el ID de la Recepción</h3>
+        <input type="text" id="id-recepcion" placeholder="Ejemplo: 123">
+        <button onclick="cargarRecepcion()"><i class="fa-solid fa-box-open"></i>
+            Cargar Recepción</button>
+        <p id="mensaje-carga"></p>
+    </div>
+    
+    <!-- Tabla para mostrar los productos de la recepción -->
+    <div class="table-container">
+        <h3>Recepción Seleccionada</h3>
+        <table id="tabla-recepcion">
+            <thead>
+                <tr>
+                    <th>Código Producto</th>
+                    <th>N° Lote</th>
+                    <th>Fecha Vto</th>
+                    <th>Temperatura</th>
+                    <th>Cantidad</th>
+                    <th>N° Partida</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Se llenará dinámicamente con JS -->
+            </tbody>
+        </table>
+    </div>
+    
+
+{% endblock %}

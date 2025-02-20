@@ -31,6 +31,12 @@ class Usuario(db.Model, UserMixin):
         """Verifica si la contraseña ingresada es correcta."""
         return bcrypt.check_password_hash(self.password_hash, password)
 
+# 📌 Tabla intermedia para la relación muchos a muchos
+recepcion_productos = db.Table(
+    'recepcion_productos',
+    db.Column('recepcion_id', db.Integer, db.ForeignKey('recepciones.id'), primary_key=True),
+    db.Column('producto_codigo', db.String(20), db.ForeignKey('productos.codigo'), primary_key=True)
+)
 
 # 📌 Modelo para Productos
 class Producto(db.Model):
@@ -53,6 +59,6 @@ class Recepcion(db.Model):
     proveedor = db.Column(db.String(255), nullable=False)  # Seleccionable
     ins_mat_prod = db.Column(db.String(255), nullable=False)  # Seleccionable
     producto_codigo = db.Column(db.String(20), db.ForeignKey('productos.codigo'))
-    producto = db.relationship('Producto', backref=db.backref('recepciones', lazy=True))
+    productos = db.relationship('Producto', secondary=recepcion_productos, backref='recepciones', lazy=True) 
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
