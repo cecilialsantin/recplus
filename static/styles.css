@@ -18,6 +18,7 @@ body {
     align-items: center;
     justify-content: center;
 }
+
 /* 🔹 Header bar con logo */
 .header-bar {
     width: 80%;
@@ -33,15 +34,15 @@ body {
 }
 
 .tagline {
-    font-size: 0.9em;
+    font-size: 0.8em;
     font-weight: 300;
     color: rgba(255, 255, 255, 0.9); /* Un tono blanco sutil */
 }
 
 .header-bar h2 {
     margin: 0;
-    font-size: 1.5em;
-    font-weight: 300;
+    font-size: 1.8em;
+    font-weight: 400;
 }
 
 .logo {
@@ -158,15 +159,21 @@ body {
     background: rgba(255, 255, 255, 0.2);
 }
 
-/* 🔹 Contenedor del formulario en Home */
-.home-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 20px;
+/* 🔹 Estilos para los formularios en Home (Admin y Scan) */
+
+/* 🔹 Responsivo: Ajustar en pantallas pequeñas */
+@media (max-width: 768px) {
+    .home-container {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .recepcion-section,
+    .scan-section {
+        width: 100%;
+    }
 }
 
-/* 🔹 Estilos para los formularios en Home (Admin y Scan) */
 .form-box {
     background: white;
     border: 1px solid #ccc;
@@ -199,6 +206,15 @@ body {
     transition: border-color 0.2s ease-in-out;
 }
 
+/* 🔹 Lista de productos escaneados */
+#productos-seleccionados {
+    height: 100px;
+    width: 100%;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 8px;
+    overflow-y: auto;
+}
 /* 🔹 Efecto al enfocar inputs */
 .form-box input:focus,
 .form-box select:focus {
@@ -231,7 +247,26 @@ body {
     margin-top: 10px;
 }
 
+/* 🔹 Contenedor principal: Dos columnas */
+.home-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 20px;
+    padding: 20px;
+    max-width: 1000px;
+    margin: auto;
+}
 
+/* 🔹 Sección de Recepción y Escaneo de Productos */
+.recepcion-section,
+.scan-section {
+    flex: 1;
+    background-color: #ffffff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.2);
+}
 /* 🔹 Footer fijo abajo */
 footer {
     background-color: #fbf1fa;
@@ -358,4 +393,120 @@ tbody tr:hover {
 
 .btn-procesar:hover {
     background-color: #c56a1c;
+}
+
+/* 🔹 Botón para ver las recepciones */
+.btn-ver-recepciones {
+    background-color: #95cea5;
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 20px;
+    font-size: 1em;
+    transition: background 0.2s;
+}
+
+.btn-ver-recepciones:hover {
+    background-color: #e48023;
+}
+
+/* 🔹 Estilo de la tabla de recepciones */
+.table-container {
+    width: 90%;
+    margin-top: 20px;
+    overflow-x: auto;
+}
+
+#tabla-recepciones {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+#tabla-recepciones th, #tabla-recepciones td {
+    border: 1px solid #ccc;
+    padding: 10px;
+    text-align: left;
+}
+
+#tabla-recepciones th {
+    background-color: #95cea5;
+    color: white;
+}
+
+/* 🔹 Contenedor de filtros */
+.filtros-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+/* 🔹 Estilos para los selects de filtro */
+.filtro-select {
+    padding: 8px 12px;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    background-color: white;
+    color: #333;
+    cursor: pointer;
+    transition: border-color 0.2s ease-in-out;
+}
+
+.filtro-select:focus {
+    border-color: #95cea5;
+    outline: none;
+}
+
+/* 🔹 Botón de Filtrar */
+.btn-filtrar {
+    background-color: #95cea5;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    font-size: 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.2s ease-in-out;
+}
+
+.btn-filtrar:hover {
+    background-color: #7eb58f;
+}
+
+/* 🔹 Botón de Reset Filtros */
+.btn-reset {
+    background-color: #e48023;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    font-size: 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.2s ease-in-out;
+}
+
+.btn-reset:hover {
+    background-color: #c36a1c;
+}
+
+/* 🔹 Botón de Volver */
+.btn-volver {
+    display: block;
+    margin: 20px auto;
+    background-color: #bdb2bc;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    font-size: 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.2s ease-in-out;
+}
+
+.btn-volver:hover {
+    background-color: #9a8e99;
 }

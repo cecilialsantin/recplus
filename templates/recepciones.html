@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block title %}Recepciones Registradas{% endblock %}
+
+{% block content %}
+
+<div class="welcome-bar">
+    <h2>Recepciones Registradas</h2>
+</div>
+
+    <!-- 🔹 Filtros para búsqueda rápida -->
+    <div class="filtros-container">
+        <select id="filtro-subproceso" class="filtro-select">
+            <option value="">Todos los Subprocesos</option>
+            <option value="Recepción">Recepción</option>
+            <option value="Almacenamiento">Almacenamiento</option>
+        </select>
+    
+        <select id="filtro-proveedor" class="filtro-select">
+            <option value="">Todos los Proveedores</option>
+            <option value="Proveedor A">Proveedor A</option>
+            <option value="Proveedor B">Proveedor B</option>
+        </select>
+    
+        <button class="btn-filtrar" onclick="filtrarRecepciones()">
+            <i class="fas fa-filter"></i> Filtrar
+        </button>
+    
+        <button class="btn-reset" onclick="cargarRecepciones()">
+            <i class="fas fa-redo"></i> Reset
+        </button>
+    </div>
+    
+    <!-- Tabla de Recepciones -->
+    <div class="table-container">
+        <table id="tabla-recepciones">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Fecha</th>
+                    <th>Subproceso</th>
+                    <th>Proveedor</th>
+                    <th>Productos Asociados</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Se llenará dinámicamente con JS -->
+            </tbody>
+        </table>
+    </div>
+    
+    <!-- Botón de Volver -->
+    <button class="btn-volver" onclick="window.location.href='/home'">
+        <i class="fas fa-arrow-left"></i> Volver
+    </button>
+
+{% endblock %}

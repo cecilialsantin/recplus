@@ -13,39 +13,57 @@
         <button class="logout-btn" onclick="logout()">
             <i class="fas fa-sign-out-alt"></i> Logout
         </button>   
-        <!-- Botón sutil para automatizar carga en Loyal -->
-    <button class="selenium-btn" onclick="window.location.href='/automatizacion'">
-        <i class="fa-solid fa-robot"></i> Automatizar Loyal
-    </button>         
+        <button class="selenium-btn" onclick="window.location.href='/automatizacion'">
+            <i class="fa-solid fa-robot"></i> Automatizar Loyal
+        </button>         
     </div>
-    
 
-    <!-- Contenedor del formulario -->
-    <div class="home-container">
-        <div id="admin-section" class="form-box" style="display: none;">
-            <h3>Registrar Nuevo Usuario</h3>
-            <input type="text" id="new-username" placeholder="Nuevo Usuario">
-            <input type="password" id="new-password" placeholder="Contraseña">
-            <select id="new-rol">
-                <option value="deposito">deposito</option>
-                <option value="garantia">garantia</option>
+    <!-- Contenedor de dos columnas -->
+    <div class="home-container grid-container">
+        
+        <!-- 🔹 Formulario para crear una recepción -->
+        <div id="recepcion-section" class="form-box">
+            <h3>Crear Recepción</h3>
+            <select id="subproceso">
+                <option value="">Seleccione un Subproceso</option>
+                <option value="Recepción">Recepción</option>
+                <option value="Almacenamiento">Almacenamiento</option>
             </select>
-            <button onclick="registrarUsuario()">Registrar Usuario</button>
-            <p id="admin-message"></p>
+            <select id="proveedor">
+                <option value="">Seleccione un Proveedor</option>
+                <!-- Se llenará dinámicamente desde ProductoBase -->
+            </select>
+            
+            <!-- ✅ Nuevo: Lista de productos escaneados para asociar a la recepción -->
+            <h4>Productos Escaneados</h4>
+            <select id="productos-seleccionados" multiple>
+                <!-- Se llenará dinámicamente con JS -->
+            </select>
+
+            <button onclick="crearRecepcion()"><i class="fas fa-plus"></i> Crear Recepción</button>
+            <p id="recepcion-message"></p>
         </div>
 
+        <!-- 🔹 Sección para Escaneo de Productos -->
         <div id="scan-section" class="form-box">
             <h3>Escanear Producto</h3>
-            <input type="text" id="codigo" placeholder="Código de barras">
+            <input type="text" id="codigo" placeholder="Código de barras" oninput="buscarProductoBase()">
+            <input type="text" id="codigo_tango" placeholder="Código Tango" disabled>
+            <input type="text" id="ins-mat-prod" placeholder="INS/MAT/PROD" disabled>
+            <input type="text" id="proveedor-producto" placeholder="Proveedor" disabled>
             <input type="text" id="nro_lote" placeholder="Número de Lote">
-            <input type="date" id="fecha_vto" placeholder="Fecha de Vencimiento">
+            <input type="date" id="fecha_vto" placeholder="Fecha de vencimiento">
             <input type="number" id="temperatura" placeholder="Temperatura">
             <input type="number" id="cantidad_ingresada" placeholder="Cantidad">
             <input type="text" id="nro_partida_asignada" placeholder="Número de Partida">
-            <button onclick="escanearProducto()">Registrar Producto</button>
+            <button onclick="escanearProducto()"><i class="fas fa-barcode"></i> Registrar Producto</button>
             <p id="producto-mensaje"></p>
         </div>
     </div>
 
-{% endblock %}
+    <!-- 🔹 Botón para ver todas las recepciones -->
+    <button class="btn-ver-recepciones" onclick="window.location.href='/recepciones-listado'">
+        <i class="fas fa-list"></i> Ver Recepciones
+    </button>
 
+{% endblock %}

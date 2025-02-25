@@ -2,7 +2,7 @@ import datetime
 from flask import request, jsonify
 from flask_login import login_user, login_required, logout_user, current_user
 from config import app, db
-from models import Usuario, Producto, Recepcion
+from models import ProductoBase, Usuario, Producto, Recepcion
 from flask import render_template
 from selenium import webdriver  # 🔹 Asegúrate de importar esto
 from selenium.webdriver.chrome.service import Service
@@ -31,6 +31,11 @@ def home():
 @login_required
 def automatizacion():
     return render_template('automatizacion.html')
+
+@app.route('/recepciones-listado')
+@login_required
+def recepciones_listado():
+    return render_template('recepciones.html')
 
 # 📌 Ruta para registrar nuevos usuarios (Solo el Admin puede hacerlo)
 @app.route('/register', methods=['POST'])
@@ -98,58 +103,124 @@ def logout():
 def perfil():
     return jsonify({"usuario": current_user.username})
 
+# 📌 Ruta para cargar productos base en la base de datos
+@app.route('/cargar-productos-base', methods=['POST'])
+@login_required
+def cargar_productos_base():
+    data = request.json
 
-# 📌 Ruta para registrar un producto escaneado
+    if not isinstance(data, list):
+        return jsonify({"error": "⚠️ Debe enviarse una lista de productos"}), 400
+
+    productos_creados = []
+
+    try:
+        for producto in data:
+            codigo_base = producto.get("codigo_base")
+            codigo_tango = producto.get("codigo_tango")
+            ins_mat_prod = producto.get("ins_mat_prod")
+            proveedor = producto.get("proveedor")
+
+            if not codigo_base or not codigo_tango or not ins_mat_prod or not proveedor:
+                return jsonify({"error": f"⚠️ Datos incompletos en producto {codigo_base}"}), 400
+
+            # Verificar si el producto ya existe en la base
+            producto_existente = ProductoBase.query.filter_by(codigo_base=codigo_base).first()
+            if producto_existente:
+                continue  # Si ya existe, lo ignoramos
+
+            # Crear el nuevo producto base
+            nuevo_producto = ProductoBase(
+                codigo_base=codigo_base,
+                codigo_tango=codigo_tango,
+                ins_mat_prod=ins_mat_prod,
+                proveedor=proveedor
+            )
+
+            db.session.add(nuevo_producto)
+            productos_creados.append(codigo_base)
+
+        db.session.commit()
+        return jsonify({"mensaje": "✅ Productos base cargados correctamente", "productos": productos_creados})
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": f"❌ Error al cargar los productos base: {str(e)}"}), 500
+
+
+# 📌 Ruta para obtener los datos de un producto en ProductoBase
+@app.route('/producto-base/<string:codigo>', methods=['GET'])
+@login_required
+def obtener_producto_base(codigo):
+    producto_base = ProductoBase.query.filter_by(codigo_base=codigo).first()
+
+    if not producto_base:
+        return jsonify({"error": "⚠️ Producto no encontrado en la base de datos"}), 404
+
+    return jsonify({
+        "codigo_base": producto_base.codigo_base,
+        "codigo_tango": producto_base.codigo_tango,
+        "ins_mat_prod": producto_base.ins_mat_prod,
+        "proveedor": producto_base.proveedor
+    })
+
 @app.route('/escanear', methods=['POST'])
 @login_required
 def escanear():
     data = request.json
     codigo = data.get("codigo")
     nro_lote = data.get("nro_lote")
-    fecha_vto_str = data.get("fecha_vto")
+    fecha_vto = data.get("fecha_vto")
     temperatura = data.get("temperatura")
     cantidad_ingresada = data.get("cantidad_ingresada")
     nro_partida_asignada = data.get("nro_partida_asignada")
 
-    # 🔹 Convertir la fecha a formato `datetime.date`
-    try:
-        fecha_vto = datetime.strptime(fecha_vto_str, "%Y-%m-%d").date()
-    except ValueError:
-        return jsonify({"error": "⚠️ Formato de fecha inválido. Use YYYY-MM-DD"}), 400
+    # Buscar el producto en la base de productos registrados
+    producto_base = ProductoBase.query.filter_by(codigo_base=codigo).first()
+    
+    if not producto_base:
+        return jsonify({"error": "⚠️ Producto no encontrado en la base de datos"}), 400
 
-    # 🔹 Verificar si el mismo código y lote ya están registrados
-    if Producto.query.filter_by(codigo=codigo, nro_lote=nro_lote).first():
-        return jsonify({"error": "⚠️ Este producto con el mismo lote ya está registrado"}), 400
-
-    # 🔹 Crear el nuevo producto
+    # Crear nuevo producto con datos de la recepción
     nuevo_producto = Producto(
         codigo=codigo,
+        codigo_tango=producto_base.codigo_tango,  # ✅ Se obtiene de ProductoBase
+        ins_mat_prod=producto_base.ins_mat_prod,  # ✅ Se obtiene de ProductoBase
+        proveedor=producto_base.proveedor,  # ✅ Se obtiene de ProductoBase
         nro_lote=nro_lote,
         fecha_vto=fecha_vto,
         temperatura=temperatura,
         cantidad_ingresada=cantidad_ingresada,
-        nro_partida_asignada=nro_partida_asignada
+        nro_partida_asignada=nro_partida_asignada,
+        codigo_base=producto_base.codigo_base  # Relación con ProductoBase
     )
 
     db.session.add(nuevo_producto)
     db.session.commit()
 
-    return jsonify({"mensaje": "✅ Producto registrado exitosamente"})
+    return jsonify({
+        "mensaje": "✅ Producto registrado exitosamente",
+        "codigo": nuevo_producto.codigo,
+        "codigo_tango": nuevo_producto.codigo_tango,  
+        "ins_mat_prod": nuevo_producto.ins_mat_prod,
+        "proveedor": nuevo_producto.proveedor
+    })
 
-
-
-# 📌 Ruta para obtener todos los productos escaneados
+# 📌 Ruta para obtener todos los productos escaneados y sus recepciones
 @app.route('/productos', methods=['GET'])
 @login_required
 def obtener_productos():
     productos = Producto.query.all()
+    
     productos_json = [{
         "codigo": p.codigo,
+        "ins_mat_prod": p.ins_mat_prod,  # ✅ Ahora se incluye este campo
         "nro_lote": p.nro_lote,
         "fecha_vto": str(p.fecha_vto),
         "temperatura": p.temperatura,
         "cantidad_ingresada": p.cantidad_ingresada,
-        "nro_partida_asignada": p.nro_partida_asignada
+        "nro_partida_asignada": p.nro_partida_asignada,
+        "recepciones": [r.id for r in p.recepciones]  # ✅ IDs de las recepciones en las que está el producto
     } for p in productos]
 
     return jsonify(productos_json)
@@ -162,30 +233,29 @@ def registrar_recepcion():
     data = request.json
     subproceso = data.get("subproceso")
     proveedor = data.get("proveedor")
-    ins_mat_prod = data.get("ins_mat_prod")
-    productos_codigos = data.get("productos")  # Lista de códigos de productos
+    productos_codigos = data.get("productos")  # Lista de códigos de productos a asociar
 
     if not productos_codigos or not isinstance(productos_codigos, list):
         return jsonify({"error": "⚠️ Se debe enviar una lista de productos"}), 400
 
     nueva_recepcion = Recepcion(
         subproceso=subproceso,
-        proveedor=proveedor,
-        ins_mat_prod=ins_mat_prod
+        proveedor=proveedor
     )
 
     db.session.add(nueva_recepcion)
-    db.session.flush()  # ⚠️ Esto permite usar `nueva_recepcion.id` antes del commit
+    db.session.flush()  # ⚠️ Permite usar `nueva_recepcion.id` antes del commit
 
-    # 🔹 Relacionar los productos con la recepción
+    # 🔹 Relacionar los productos escaneados con la recepción
     for codigo in productos_codigos:
         producto = Producto.query.filter_by(codigo=codigo).first()
         if producto:
-            nueva_recepcion.productos.append(producto)  # Relación Muchos a Muchos
+            nueva_recepcion.productos.append(producto)
 
     db.session.commit()
 
     return jsonify({"mensaje": "✅ Recepción registrada correctamente"})
+
 
 
 # 📌 Ruta para obtener todas las recepciones con sus productos
@@ -193,21 +263,26 @@ def registrar_recepcion():
 @login_required
 def obtener_recepciones():
     recepciones = Recepcion.query.all()
-    
-    recepciones_json = []
-    for r in recepciones:
-        recepcion_info = {
-            "id": r.id,
-            "fecha": str(r.fecha),
-            "subproceso": r.subproceso,
-            "proveedor": r.proveedor,
-            "ins_mat_prod": r.ins_mat_prod,
-            "productos": [{"codigo": p.codigo, "nro_lote": p.nro_lote} for p in r.productos]
-        }
-        recepciones_json.append(recepcion_info)
+
+    recepciones_json = [{
+        "id": r.id,
+        "fecha": str(r.fecha),
+        "subproceso": r.subproceso,
+        "proveedor": r.proveedor,
+        "productos": [{
+            "codigo": p.codigo,
+            "ins_mat_prod": p.ins_mat_prod,
+            "nro_lote": p.nro_lote,
+            "fecha_vto": str(p.fecha_vto),
+            "temperatura": p.temperatura,
+            "cantidad_ingresada": p.cantidad_ingresada,
+            "nro_partida_asignada": p.nro_partida_asignada
+        } for p in r.productos]
+    } for r in recepciones]
 
     return jsonify(recepciones_json)
 
+# 📌 Ruta para obtener una recepción con todos sus productos y detalles
 # 📌 Ruta para obtener una recepción con todos sus productos y detalles
 @app.route('/recepcion/<int:recepcion_id>', methods=['GET'])
 @login_required
@@ -219,7 +294,7 @@ def obtener_recepcion_con_productos(recepcion_id):
         return jsonify({"error": "⚠️ Recepción no encontrada"}), 404
     
     # Obtener todos los productos relacionados con la recepción
-    productos = Producto.query.join(Recepcion).filter(Recepcion.id == recepcion_id).all()
+    productos = recepcion.productos  # Ahora se obtiene directamente desde la relación muchos a muchos
 
     # Estructurar la respuesta JSON con todos los detalles
     recepcion_json = {
@@ -227,9 +302,9 @@ def obtener_recepcion_con_productos(recepcion_id):
         "fecha": str(recepcion.fecha),
         "subproceso": recepcion.subproceso,
         "proveedor": recepcion.proveedor,
-        "ins_mat_prod": recepcion.ins_mat_prod,
         "productos": [{
             "codigo": p.codigo,
+            "ins_mat_prod": p.ins_mat_prod,  # ✅ Ahora se incluye este campo
             "nro_lote": p.nro_lote,
             "fecha_vto": str(p.fecha_vto),
             "temperatura": p.temperatura,
@@ -240,11 +315,8 @@ def obtener_recepcion_con_productos(recepcion_id):
 
     return jsonify(recepcion_json)
 
+
 # 📌 Ruta para iniciar Selenium y completar el formulario en Loyal
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.common.keys import Keys
-import time
 
 @app.route('/iniciarSelenium', methods=['POST'])
 @login_required
