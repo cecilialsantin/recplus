@@ -211,6 +211,20 @@ function eliminarProducto(boton, codigo) {
     console.log("Productos escaneados después de eliminar:", productosEscaneados);
 }
 
+
+// 📌 Función para limpiar los campos del formulario
+function limpiarFormulario() {
+    document.getElementById("codigo").value = "";
+    document.getElementById("codigo_tango").value = "";
+    document.getElementById("ins-mat-prod").value = "";
+    document.getElementById("proveedor-producto").value = "";
+    document.getElementById("nro_lote").value = "";
+    document.getElementById("fecha_vto").value = "";
+    document.getElementById("temperatura").value = "";
+    document.getElementById("cantidad_ingresada").value = "";
+    document.getElementById("nro_partida_asignada").value = "";
+}
+
 // 🔹 Lista temporal para productos antes de asociarlos a una recepción
 let productosEscaneados = [];
 
@@ -300,6 +314,9 @@ async function escanearProducto() {
             document.getElementById("temperatura").value = "";
             document.getElementById("cantidad_ingresada").value = "";
             document.getElementById("nro_partida_asignada").value = "";
+
+            // ✅ LIMPIAR FORMULARIO DESPUÉS DEL REGISTRO
+            limpiarFormulario();
 
         } else {
             mensaje.textContent = data.error || "⚠️ No se pudo registrar el producto.";
