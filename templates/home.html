@@ -20,6 +20,23 @@
 
     <!-- Contenedor de dos columnas -->
     <div class="home-container grid-container">
+
+         <!-- 🔹 Sección para Escaneo de Productos -->
+         <div id="scan-section" class="form-box">
+            <h3>Escanear Producto</h3>
+            <input type="text" id="codigo" placeholder="Escanear código" oninput="analizarUDI(this.value)">
+            <input type="text" id="codigo_tango" placeholder="Código Tango" disabled>
+            <input type="text" id="ins-mat-prod" placeholder="INS/MAT/PROD" disabled>
+            <input type="text" id="proveedor-producto" placeholder="Proveedor" disabled>
+            <input type="text" id="nro_lote" placeholder="Número de Lote">
+            <label for="fecha_vto">Fecha de Vencimiento</label>
+            <input type="date" id="fecha_vto">            
+            <input type="number" id="temperatura" placeholder="Temperatura">
+            <input type="number" id="cantidad_ingresada" placeholder="Cantidad">
+            <input type="text" id="nro_partida_asignada" placeholder="Número de Partida">
+            <button onclick="escanearProducto()"><i class="fa-solid fa-file-arrow-up icono"></i>Registrar</button>
+            <p id="producto-mensaje"></p>
+        </div>
         
         <!-- 🔹 Formulario para crear una recepción -->
         <div id="recepcion-section" class="form-box">
@@ -27,7 +44,6 @@
             <select id="subproceso">
                 <option value="">Seleccione un Subproceso</option>
                 <option value="Recepción">Recepción</option>
-                <option value="Almacenamiento">Almacenamiento</option>
             </select>
             <select id="proveedor">
                 <option value="">Seleccione un Proveedor</option>
@@ -35,35 +51,39 @@
             </select>
             
             <!-- ✅ Nuevo: Lista de productos escaneados para asociar a la recepción -->
-            <h4>Productos Escaneados</h4>
-            <select id="productos-seleccionados" multiple>
-                <!-- Se llenará dinámicamente con JS -->
-            </select>
+            <div class="table-container">
+                <h4>Productos Escaneados</h4>
+            <table id="tabla-productos-escaneados">
+                <thead>
+                    <tr>
+                        <th>Seleccionar</th>
+                        <th>Código</th>
+                        <th>INS/MAT/PROD</th>
+                        <th>N° Lote</th>
+                        <th>Fecha Vto</th>
+                        <th>Temperatura</th>
+                        <th>Cantidad</th>
+                        <th>Eliminar</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Aquí se insertarán los productos escaneados dinámicamente -->
+                </tbody>
+            </table>
+        </div>
+
 
             <button onclick="crearRecepcion()"><i class="fas fa-plus"></i> Crear Recepción</button>
             <p id="recepcion-message"></p>
+            
+                <button class="btn-ver-recepciones" onclick="window.location.href='/recepciones-listado'">
+                  <i class="fas fa-list"></i> Ver Recepciones
+                 </button>
+             
         </div>
+           <!-- 🔹 Botón para ver todas las recepciones -->
+      
 
-        <!-- 🔹 Sección para Escaneo de Productos -->
-        <div id="scan-section" class="form-box">
-            <h3>Escanear Producto</h3>
-            <input type="text" id="codigo" placeholder="Código de barras" oninput="buscarProductoBase()">
-            <input type="text" id="codigo_tango" placeholder="Código Tango" disabled>
-            <input type="text" id="ins-mat-prod" placeholder="INS/MAT/PROD" disabled>
-            <input type="text" id="proveedor-producto" placeholder="Proveedor" disabled>
-            <input type="text" id="nro_lote" placeholder="Número de Lote">
-            <input type="date" id="fecha_vto" placeholder="Fecha de vencimiento">
-            <input type="number" id="temperatura" placeholder="Temperatura">
-            <input type="number" id="cantidad_ingresada" placeholder="Cantidad">
-            <input type="text" id="nro_partida_asignada" placeholder="Número de Partida">
-            <button onclick="escanearProducto()"><i class="fas fa-barcode"></i> Registrar Producto</button>
-            <p id="producto-mensaje"></p>
-        </div>
     </div>
-
-    <!-- 🔹 Botón para ver todas las recepciones -->
-    <button class="btn-ver-recepciones" onclick="window.location.href='/recepciones-listado'">
-        <i class="fas fa-list"></i> Ver Recepciones
-    </button>
 
 {% endblock %}

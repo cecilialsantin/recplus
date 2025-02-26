@@ -134,33 +134,94 @@ document.addEventListener("DOMContentLoaded", function() {
     };
 });
 
-// 🔹 Lista temporal para productos antes de asociarlos a una recepción
-let productosEscaneados = [];
+// 📌 Función para analizar un código UDI GS1
+function analizarUDI(codigoUDI) {
+    console.log(`📥 Código recibido para análisis: ${codigoUDI}`);
 
-// 📌 Función para buscar un producto en ProductoBase al escanear el código
-async function buscarProductoBase(codigo) {
+    // Nueva RegEx corregida
+    const regex = /01(\d{14})17(\d{6})10([\w\-\.\_]+)/;
+    const match = codigoUDI.match(regex);
+
+    if (!match) {
+        console.error(`❌ Error: Código UDI no reconocido: ${codigoUDI}`);
+        alert("⚠️ Código UDI no válido o no reconocido.");
+        return;
+    }
+
+    const gtin = match[1]; // GTIN (Código Base)
+    const fechaVencimiento = match[2]; // Fecha de Vencimiento en formato YYMMDD
+    const nroLote = match[3]; // Número de Lote
+
+    console.log(`✅ GTIN: ${gtin}, Fecha Vto: ${fechaVencimiento}, Lote: ${nroLote}`);
+
+    // 📌 Convertir fecha de vencimiento de YYMMDD a YYYY-MM-DD
+    const year = "20" + fechaVencimiento.substring(0, 2);
+    const month = fechaVencimiento.substring(2, 4);
+    const day = fechaVencimiento.substring(4, 6);
+    const fechaFormateada = `${year}-${month}-${day}`;
+
+    // ✅ Autocompletar los campos en el formulario
+    document.getElementById("codigo").value = gtin;
+    document.getElementById("nro_lote").value = nroLote;
+    document.getElementById("fecha_vto").value = fechaFormateada;
+
+    console.log(`📌 Código extraído: ${gtin}, Lote: ${nroLote}, Fecha Vto: ${fechaFormateada}`);
+
+    // 🔍 Buscar en ProductoBase y completar INS/MAT/PROD y Proveedor
+    buscarProductoBase(gtin);
+}
+
+
+// 📌 Evento para ejecutar la función cuando el usuario escanee un código
+document.getElementById("codigo").addEventListener("input", function () {
+    const codigo = this.value.trim();
+    if (codigo.length > 20) { // Suponiendo que el UDI tiene más de 20 caracteres
+        analizarUDI(codigo);
+    }
+});
+
+// 📌 Función para buscar en ProductoBase y autocompletar campos adicionales
+async function buscarProductoBase(codigoBase) {
     try {
-        const response = await fetch(`/producto_base/${codigo}`);
+        const response = await fetch(`/producto-base/${codigoBase}`);
         const data = await response.json();
 
         if (response.ok) {
-            return data; // ✅ Devuelve el producto encontrado en ProductoBase
+            document.getElementById("ins-mat-prod").value = data.ins_mat_prod;
+            document.getElementById("proveedor-producto").value = data.proveedor;
+            document.getElementById("codigo_tango").value = data.codigo_tango;
         } else {
-            console.warn("⚠️ Producto no encontrado en ProductoBase.");
-            return null;
+            console.warn("⚠️ Producto no encontrado en la base.");
         }
     } catch (error) {
-        console.error("❌ Error al buscar en ProductoBase:", error);
-        return null;
+        console.error("❌ Error al buscar el producto base:", error);
     }
 }
+// 📌 Función para eliminar un producto escaneado
+function eliminarProducto(boton, codigo) {
+    // Eliminar de la lista de productos escaneados
+    productosEscaneados = productosEscaneados.filter(producto => producto.codigo !== codigo);
+
+    // Eliminar la fila de la tabla visualmente
+    const fila = boton.closest("tr");
+    if (fila) {
+        fila.remove();
+    }
+
+    console.log("Productos escaneados después de eliminar:", productosEscaneados);
+}
+
+// 🔹 Lista temporal para productos antes de asociarlos a una recepción
+let productosEscaneados = [];
 
 // 📌 Función para escanear un producto y guardarlo en la base de datos
 async function escanearProducto() {
+    console.log("📌 Se hizo clic en el botón de registrar"); // 👈 Verifica que se activa
+
     const codigo = document.getElementById("codigo").value.trim();
-    const insMatProdField = document.getElementById("ins-mat-prod");
-    const proveedorField = document.getElementById("proveedor-producto");
-    const codigoTangoField = document.getElementById("codigo_tango"); // ✅ Nuevo campo
+    const insMatProd = document.getElementById("ins-mat-prod").value.trim();
+    const proveedor = document.getElementById("proveedor-producto").value.trim();
+    const codigoTango = document.getElementById("codigo_tango").value.trim();
     const nroLote = document.getElementById("nro_lote").value.trim();
     const fechaVto = document.getElementById("fecha_vto").value.trim();
     const temperatura = document.getElementById("temperatura").value.trim();
@@ -168,25 +229,13 @@ async function escanearProducto() {
     const nroPartida = document.getElementById("nro_partida_asignada").value.trim();
     const mensaje = document.getElementById("producto-mensaje");
 
-    if (!codigo || !nroLote || !fechaVto || !cantidad || !nroPartida) {
+    console.log(`📌 Código escaneado: ${codigo}`);
+
+    if (!codigo || !insMatProd || !proveedor || !codigoTango || !nroLote || !fechaVto || !cantidad || !nroPartida) {
         mensaje.textContent = "⚠️ Complete todos los campos antes de registrar el producto.";
         mensaje.style.color = "red";
         return;
     }
-
-    // 🔹 Buscar datos en ProductoBase
-    let productoBase = await buscarProductoBase(codigo);
-
-    if (!productoBase) {
-        mensaje.textContent = "⚠️ Producto no registrado en la base de datos.";
-        mensaje.style.color = "red";
-        return;
-    }
-
-    // ✅ Autocompletar los campos con los datos de ProductoBase
-    insMatProdField.value = productoBase.ins_mat_prod;
-    proveedorField.value = productoBase.proveedor;
-    codigoTangoField.value = productoBase.codigo_tango;
 
     mensaje.textContent = "⏳ Registrando producto...";
 
@@ -196,9 +245,9 @@ async function escanearProducto() {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
                 codigo,
-                codigo_tango: productoBase.codigo_tango, // ✅ Nuevo campo agregado
-                ins_mat_prod: productoBase.ins_mat_prod,
-                proveedor: productoBase.proveedor,
+                codigo_tango: codigoTango,
+                ins_mat_prod: insMatProd,
+                proveedor: proveedor,
                 nro_lote: nroLote,
                 fecha_vto: fechaVto,
                 temperatura,
@@ -208,27 +257,43 @@ async function escanearProducto() {
         });
 
         const data = await response.json();
+        console.log(`📤 Respuesta del servidor: ${JSON.stringify(data)}`);
 
         if (response.ok) {
             mensaje.textContent = "✅ Producto registrado correctamente.";
             mensaje.style.color = "green";
 
+            // 🔹 Agregar producto escaneado a la tabla con checkbox
+            let tabla = document.querySelector("#tabla-productos-escaneados tbody");
+            let fila = document.createElement("tr");
+            fila.innerHTML = `
+                <td><input type="checkbox" class="producto-checkbox" value="${codigo}"></td>
+                <td>${codigo}</td>
+                <td>${insMatProd}</td>
+                <td>${nroLote}</td>
+                <td>${fechaVto}</td>
+                <td>${temperatura || "-"}</td>
+                <td>${cantidad}</td>
+                <td><button onclick="eliminarProducto(this, '${codigo}')" class="btn-eliminar">❌</button></td>
+            `;
+            tabla.appendChild(fila);
+
             // 🔹 Agregar producto escaneado a la lista temporal
             productosEscaneados.push({
                 codigo,
-                codigo_tango: productoBase.codigo_tango,
-                ins_mat_prod: productoBase.ins_mat_prod,
-                proveedor: productoBase.proveedor,
+                codigo_tango: codigoTango,
+                ins_mat_prod: insMatProd,
+                proveedor: proveedor,
                 nro_lote: nroLote,
                 fecha_vto: fechaVto,
-                temperatura,
+                temperatura: temperatura ? parseFloat(temperatura) : null,
                 cantidad_ingresada: cantidad,
                 nro_partida_asignada: nroPartida
             });
 
-            console.log("Productos escaneados:", productosEscaneados);
+            console.log("📌 Productos escaneados hasta ahora:", productosEscaneados);
 
-            // 🔹 Limpiar campos después del escaneo (excepto los autocompletados)
+            // 🔹 Limpiar campos después del escaneo
             document.getElementById("codigo").value = "";
             document.getElementById("nro_lote").value = "";
             document.getElementById("fecha_vto").value = "";
@@ -241,11 +306,12 @@ async function escanearProducto() {
             mensaje.style.color = "red";
         }
     } catch (error) {
-        console.error("Error:", error);
+        console.error("❌ Error al comunicarse con el servidor:", error);
         mensaje.textContent = "❌ Error al comunicarse con el servidor.";
         mensaje.style.color = "red";
     }
 }
+
 
 // 📌 Función para crear una recepción y asociarle productos
 async function crearRecepcion() {
@@ -259,8 +325,14 @@ async function crearRecepcion() {
         return;
     }
 
-    if (productosEscaneados.length === 0) {
-        mensaje.textContent = "⚠️ No hay productos escaneados para asociar a la recepción.";
+    // 🔹 Obtener productos seleccionados
+    let productosSeleccionados = [];
+    document.querySelectorAll(".producto-checkbox:checked").forEach(checkbox => {
+        productosSeleccionados.push(checkbox.value);
+    });
+
+    if (productosSeleccionados.length === 0) {
+        mensaje.textContent = "⚠️ No hay productos seleccionados para asociar a la recepción.";
         mensaje.style.color = "red";
         return;
     }
@@ -274,7 +346,7 @@ async function crearRecepcion() {
             body: JSON.stringify({
                 subproceso,
                 proveedor,
-                productos: productosEscaneados.map(p => p.codigo) // ✅ Se envían los códigos de productos escaneados
+                productos: productosSeleccionados // ✅ Enviar solo los productos marcados
             })
         });
 
@@ -283,11 +355,9 @@ async function crearRecepcion() {
         if (response.ok) {
             mensaje.textContent = `✅ Recepción creada con ID: ${data.id}`;
             mensaje.style.color = "green";
-            productosEscaneados = []; // 🔹 Limpiar lista de productos después de asociarlos
 
-            // Limpiar campos
-            document.getElementById("subproceso").value = "";
-            document.getElementById("proveedor").value = "";
+            // 🔹 Limpiar la tabla de productos escaneados
+            document.querySelector("#tabla-productos-escaneados tbody").innerHTML = "";
 
         } else {
             mensaje.textContent = data.error || "⚠️ No se pudo crear la recepción.";
@@ -299,6 +369,7 @@ async function crearRecepcion() {
         mensaje.style.color = "red";
     }
 }
+
 
 // 📌 Función para cargar las recepciones y mostrarlas en la tabla
 async function cargarRecepciones() {

@@ -41,17 +41,19 @@ class ProductoBase(db.Model):
     # Relación con Producto (para validaciones futuras si es necesario)
     productos = db.relationship('Producto', backref='producto_base', lazy=True)
 
-# 📌 Tabla intermedia para la relación muchos a muchos entre Recepción y Producto
-recepcion_productos = db.Table(
-    'recepcion_productos',
+
+# 📌 Tabla intermedia para la relación muchos a muchos entre Recepcion y Producto
+recepcion_productos = db.Table('recepcion_productos',
     db.Column('recepcion_id', db.Integer, db.ForeignKey('recepciones.id'), primary_key=True),
-    db.Column('producto_codigo', db.String(20), db.ForeignKey('productos.codigo'), primary_key=True)
+    db.Column('producto_id', db.Integer, db.ForeignKey('productos.id'), primary_key=True)  # 🔹 Referencia a productos.id
 )
+
 
 # 📌 Modelo para Productos (Se escanean primero, antes de asociarlos a una Recepción)
 class Producto(db.Model):
     __tablename__ = 'productos'
-    codigo = db.Column(db.String(20), primary_key=True)  # Código de barras escaneado
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)  # 🔹 Usar ID único
+    codigo = db.Column(db.String(50), nullable=False)  
     codigo_tango = db.Column(db.String(20),nullable=False) #codigo_tango viene de productoBase
     ins_mat_prod = db.Column(db.String(255), nullable=False)  # INS/MAT/PROD viene de ProductoBase
     proveedor = db.Column(db.String(255), nullable=False)  # Se obtiene de ProductoBase
@@ -72,8 +74,8 @@ class Recepcion(db.Model):
     __tablename__ = 'recepciones'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     fecha = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
-    subproceso = db.Column(db.String(100), nullable=False)  # Seleccionable
-    proveedor = db.Column(db.String(255), nullable=False)  # Seleccionable
+    subproceso = db.Column(db.String(100), nullable=False)
+    proveedor = db.Column(db.String(255), nullable=False)
 
     # ✅ Relación muchos a muchos con productos
     productos = db.relationship('Producto', secondary=recepcion_productos, backref='recepciones', lazy=True) 

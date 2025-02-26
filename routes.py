@@ -105,7 +105,7 @@ def perfil():
 
 # 📌 Ruta para cargar productos base en la base de datos
 @app.route('/cargar-productos-base', methods=['POST'])
-@login_required
+#@login_required
 def cargar_productos_base():
     data = request.json
 
@@ -152,10 +152,25 @@ def cargar_productos_base():
 @app.route('/producto-base/<string:codigo>', methods=['GET'])
 @login_required
 def obtener_producto_base(codigo):
+    print(f"🔍 Código recibido en la ruta: '{codigo}' (Longitud: {len(codigo)})")
+
+    # Intento de búsqueda exacta
     producto_base = ProductoBase.query.filter_by(codigo_base=codigo).first()
 
     if not producto_base:
-        return jsonify({"error": "⚠️ Producto no encontrado en la base de datos"}), 404
+        print(f"❌ No se encontró con búsqueda exacta: '{codigo}'")
+        
+        # Intento eliminando espacios en blanco
+        codigo_limpiado = codigo.strip()
+        print(f"🔍 Intentando con código limpio: '{codigo_limpiado}' (Longitud: {len(codigo_limpiado)})")
+        
+        producto_base = ProductoBase.query.filter_by(codigo_base=codigo_limpiado).first()
+
+        if not producto_base:
+            print(f"⚠️ Aún no se encuentra el producto en la base.")
+            return jsonify({"error": "⚠️ Producto no encontrado en la base de datos"}), 404
+
+    print(f"✅ Producto encontrado: {producto_base.ins_mat_prod}")
 
     return jsonify({
         "codigo_base": producto_base.codigo_base,
@@ -164,34 +179,35 @@ def obtener_producto_base(codigo):
         "proveedor": producto_base.proveedor
     })
 
+
+# 📌 Ruta para escanear un producto y registrarlo
 @app.route('/escanear', methods=['POST'])
 @login_required
 def escanear():
     data = request.json
     codigo = data.get("codigo")
-    nro_lote = data.get("nro_lote")
-    fecha_vto = data.get("fecha_vto")
-    temperatura = data.get("temperatura")
-    cantidad_ingresada = data.get("cantidad_ingresada")
-    nro_partida_asignada = data.get("nro_partida_asignada")
 
-    # Buscar el producto en la base de productos registrados
+    print(f"🔍 Código recibido en backend para búsqueda: {codigo}")
+
     producto_base = ProductoBase.query.filter_by(codigo_base=codigo).first()
-    
+
     if not producto_base:
-        return jsonify({"error": "⚠️ Producto no encontrado en la base de datos"}), 400
+        print("❌ Producto no encontrado en la base de datos.")  # Depuración
+        return jsonify({"error": "⚠️ Producto no registrado en la base de datos"}), 400
+
+    print(f"✅ Producto encontrado: {producto_base.ins_mat_prod}")
 
     # Crear nuevo producto con datos de la recepción
     nuevo_producto = Producto(
         codigo=codigo,
-        codigo_tango=producto_base.codigo_tango,  # ✅ Se obtiene de ProductoBase
-        ins_mat_prod=producto_base.ins_mat_prod,  # ✅ Se obtiene de ProductoBase
-        proveedor=producto_base.proveedor,  # ✅ Se obtiene de ProductoBase
-        nro_lote=nro_lote,
-        fecha_vto=fecha_vto,
-        temperatura=temperatura,
-        cantidad_ingresada=cantidad_ingresada,
-        nro_partida_asignada=nro_partida_asignada,
+        codigo_tango=producto_base.codigo_tango,
+        ins_mat_prod=producto_base.ins_mat_prod,
+        proveedor=producto_base.proveedor,
+        nro_lote=data.get("nro_lote"),
+        fecha_vto=data.get("fecha_vto"),
+        temperatura=data.get("temperatura"),
+        cantidad_ingresada=data.get("cantidad_ingresada"),
+        nro_partida_asignada=data.get("nro_partida_asignada"),
         codigo_base=producto_base.codigo_base  # Relación con ProductoBase
     )
 
@@ -201,10 +217,11 @@ def escanear():
     return jsonify({
         "mensaje": "✅ Producto registrado exitosamente",
         "codigo": nuevo_producto.codigo,
-        "codigo_tango": nuevo_producto.codigo_tango,  
+        "codigo_tango": nuevo_producto.codigo_tango,
         "ins_mat_prod": nuevo_producto.ins_mat_prod,
         "proveedor": nuevo_producto.proveedor
     })
+
 
 # 📌 Ruta para obtener todos los productos escaneados y sus recepciones
 @app.route('/productos', methods=['GET'])
@@ -282,7 +299,6 @@ def obtener_recepciones():
 
     return jsonify(recepciones_json)
 
-# 📌 Ruta para obtener una recepción con todos sus productos y detalles
 # 📌 Ruta para obtener una recepción con todos sus productos y detalles
 @app.route('/recepcion/<int:recepcion_id>', methods=['GET'])
 @login_required

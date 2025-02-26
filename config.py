@@ -32,7 +32,6 @@ login_manager.session_protection = "strong"
 
 
 # 🔹 Cargar usuario por ID para Flask-Login
-# 🔹 Cargar usuario por ID para Flask-Login (Evita el ImportError de `db`)
 @login_manager.user_loader
 def load_user(user_id):
     from models import Usuario  # ⬅️ Importar aquí para evitar el ciclo
