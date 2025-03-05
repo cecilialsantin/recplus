@@ -179,7 +179,7 @@ body {
     border: 1px solid #ccc;
     border-radius: 8px;
     padding: 20px;
-    width: 320px;
+    max-width: 500px;
     text-align: center;
     box-shadow: 0 2px 5px rgba(88, 184, 103, 0.1);
     margin-bottom: 20px; /* Espacio entre formularios */
@@ -295,7 +295,6 @@ body {
 
 .table-container table {
     width: 100%; 
-    display: block;
 }
 
 .table-container h4{

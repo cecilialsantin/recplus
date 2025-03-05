@@ -276,6 +276,7 @@ async function escanearProducto() {
         if (response.ok) {
             mensaje.textContent = "✅ Producto registrado correctamente.";
             mensaje.style.color = "green";
+            
 
             // 🔹 Agregar producto escaneado a la tabla con checkbox
             let tabla = document.querySelector("#tabla-productos-escaneados tbody");
@@ -306,6 +307,10 @@ async function escanearProducto() {
             });
 
             console.log("📌 Productos escaneados hasta ahora:", productosEscaneados);
+            
+            // ✅ Guardar en localStorage
+            localStorage.setItem("productosEscaneados", JSON.stringify(productosEscaneados));
+            actualizarTablaProductos();  // ✅ Actualizar la tabla
 
             // 🔹 Limpiar campos después del escaneo
             document.getElementById("codigo").value = "";
@@ -329,11 +334,39 @@ async function escanearProducto() {
     }
 }
 
+// 📌 Al cargar la página, restaurar productos escaneados desde localStorage
+document.addEventListener("DOMContentLoaded", () => {
+    const productosGuardados = localStorage.getItem("productosEscaneados");
+    if (productosGuardados) {
+        productosEscaneados = JSON.parse(productosGuardados);
+        actualizarTablaProductos();  // ✅ Mostrar productos guardados en la tabla
+    }
+});
+
+// 📌 Función para actualizar la tabla de productos escaneados
+function actualizarTablaProductos() {
+    let tabla = document.querySelector("#tabla-productos-escaneados tbody");
+    tabla.innerHTML = "";
+
+    productosEscaneados.forEach(producto => {
+        let fila = document.createElement("tr");
+        fila.innerHTML = `
+            <td><input type="checkbox" class="producto-checkbox" value="${producto.codigo}"></td>
+            <td>${producto.codigo}</td>
+            <td>${producto.ins_mat_prod}</td>
+            <td>${producto.nro_lote}</td>
+            <td>${producto.fecha_vto}</td>
+            <td>${producto.temperatura || "-"}</td>
+            <td>${producto.cantidad_ingresada}</td>
+            <td><button onclick="eliminarProducto(this, '${producto.codigo}')" class="btn-eliminar">❌</button></td>
+        `;
+        tabla.appendChild(fila);
+    });
+}
 
 // 📌 Función para crear una recepción y asociarle productos
 async function crearRecepcion() {
     const subproceso = document.getElementById("subproceso").value;
-    const proveedor = document.getElementById("proveedor").value;
     const mensaje = document.getElementById("recepcion-message");
 
     if (!subproceso || !proveedor) {
@@ -354,6 +387,15 @@ async function crearRecepcion() {
         return;
     }
 
+    // ✅ Tomar el proveedor del primer producto escaneado
+    const primerProducto = productosEscaneados.find(prod => productosSeleccionados.includes(prod.codigo));
+    if (!primerProducto) {
+        mensaje.textContent = "⚠️ No se encontró el proveedor de los productos seleccionados.";
+        mensaje.style.color = "red";
+        return;
+    }
+    const proveedor = primerProducto.proveedor;  // Asignar automáticamente el proveedor
+
     mensaje.textContent = "⏳ Creando recepción...";
 
     try {
@@ -362,7 +404,7 @@ async function crearRecepcion() {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
                 subproceso,
-                proveedor,
+                proveedor, // ✅ Enviar el proveedor del primer producto escaneado
                 productos: productosSeleccionados // ✅ Enviar solo los productos marcados
             })
         });
@@ -372,6 +414,10 @@ async function crearRecepcion() {
         if (response.ok) {
             mensaje.textContent = `✅ Recepción creada con ID: ${data.id}`;
             mensaje.style.color = "green";
+            
+            localStorage.removeItem("productosEscaneados");  // ✅ Borrar productos una vez creada la recepción
+            productosEscaneados = [];
+            actualizarTablaProductos();
 
             // 🔹 Limpiar la tabla de productos escaneados
             document.querySelector("#tabla-productos-escaneados tbody").innerHTML = "";
@@ -386,7 +432,6 @@ async function crearRecepcion() {
         mensaje.style.color = "red";
     }
 }
-
 
 // 📌 Función para cargar las recepciones y mostrarlas en la tabla
 async function cargarRecepciones() {

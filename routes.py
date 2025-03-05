@@ -271,7 +271,7 @@ def registrar_recepcion():
 
     db.session.commit()
 
-    return jsonify({"mensaje": "✅ Recepción registrada correctamente"})
+    return jsonify({"mensaje": "✅ Recepción registrada correctamente", "id": nueva_recepcion.id})
 
 
 
