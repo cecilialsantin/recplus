@@ -34,6 +34,12 @@
         </p>
         
     </footer>
-    <script defer src="/static/script.js"></script>
+    <!--<script defer src="/static/script.js"></script>-->
+    <!-- Incluir scripts modularizados -->
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+<script src="{{ url_for('static', filename='js/productos.js') }}"></script>
+<script src="{{ url_for('static', filename='js/recepciones.js') }}"></script>
+<script src="{{ url_for('static', filename='js/automatizacion.js') }}"></script>
+
 </body>
 </html>

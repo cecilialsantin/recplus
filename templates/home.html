@@ -15,29 +15,79 @@
         </button>   
         <button class="selenium-btn" onclick="window.location.href='/automatizacion'">
             <i class="fa-solid fa-robot"></i> Automatizar Loyal
-        </button>         
+        </button> 
+        
+            <!-- 🔹 Sección de administración (solo visible si es admin) -->
+    <div id="admin-section">
+        <button class="admin-btn" onclick="window.location.href='/admin/usuarios'">
+            <i class="fas fa-user-plus"></i>Usuarios
+        </button>
+        <button class="admin-btn" onclick="window.location.href='/admin/productosBase'">
+            <i class="fas fa-box"></i>Productos Base
+        </button>
+    </div>
+
     </div>
 
     <!-- Contenedor de dos columnas -->
     <div class="home-container grid-container">
 
-         <!-- 🔹 Sección para Escaneo de Productos -->
-         <div id="scan-section" class="form-box">
+       <!-- 🔹 Sección para Escaneo de Productos -->
+        <div id="scan-section" class="form-box">
             <h3>Escanear Producto</h3>
-            <input type="text" id="codigo" placeholder="Escanear código" oninput="analizarUDI(this.value)">
-            <input type="text" id="codigo_tango" placeholder="Código Tango" disabled>
-            <input type="text" id="ins-mat-prod" placeholder="INS/MAT/PROD" disabled>
-            <input type="text" id="proveedor-producto" placeholder="Proveedor" disabled>
-            <input type="text" id="nro_lote" placeholder="Número de Lote">
-            <label for="fecha_vto">Fecha de Vencimiento</label>
-            <input type="date" id="fecha_vto">            
-            <input type="number" id="temperatura" placeholder="Temperatura">
-            <input type="number" id="cantidad_ingresada" placeholder="Cantidad">
-            <input type="text" id="nro_partida_asignada" placeholder="Número de Partida">
-            <button onclick="escanearProducto()"><i class="fa-solid fa-file-arrow-up icono"></i>Registrar</button>
+
+            <div class="input-group">
+                <label for="codigo">Código</label>
+                <input type="text" id="codigo" placeholder="Escanear código" oninput="analizarUDI(this.value)">
+            </div>
+
+            <div class="input-group">
+                <label for="codigo_tango">Código Tango</label>
+                <input type="text" id="codigo_tango" disabled>
+            </div>
+
+            <div class="input-group">
+                <label for="ins-mat-prod">INS/MAT/PROD</label>
+                <input type="text" id="ins-mat-prod" disabled>
+            </div>
+
+            <div class="input-group">
+                <label for="proveedor-producto">Proveedor</label>
+                <input type="text" id="proveedor-producto" disabled>
+            </div>
+
+            <div class="input-group">
+                <label for="nro_lote">Número de Lote</label>
+                <input type="text" id="nro_lote">
+            </div>
+
+            <div class="input-group">
+                <label for="fecha_vto">Fecha de Vencimiento</label>
+                <input type="date" id="fecha_vto">
+            </div>
+
+            <div class="input-group">
+                <label for="temperatura">Temperatura</label>
+                <input type="number" id="temperatura">
+            </div>
+
+            <div class="input-group">
+                <label for="cantidad_ingresada">Cantidad</label>
+                <input type="number" id="cantidad_ingresada">
+            </div>
+
+            <div class="input-group">
+                <label for="nro_partida_asignada">Número de Partida</label>
+                <input type="text" id="nro_partida_asignada">
+            </div>
+
+            <button onclick="escanearProducto()">
+                <i class="fa-solid fa-file-arrow-up icono"></i> Registrar
+            </button>
+            
             <p id="producto-mensaje"></p>
         </div>
-        
+
         <!-- 🔹 Formulario para crear una recepción -->
         <div id="recepcion-section" class="form-box">
             <h3>Crear Recepción</h3>
@@ -76,9 +126,10 @@
             <button onclick="crearRecepcion()"><i class="fas fa-plus"></i> Crear Recepción</button>
             <p id="recepcion-message"></p>
             
-                <button class="btn-ver-recepciones" onclick="window.location.href='/recepciones-listado'">
-                  <i class="fas fa-list"></i> Ver Recepciones
-                 </button>
+            <button class="btn-ver-recepciones" onclick="window.location.href='/recepciones-listado'">
+                <i class="fas fa-list"></i> Ver Recepciones
+            </button>
+            
              
         </div>
            <!-- 🔹 Botón para ver todas las recepciones -->

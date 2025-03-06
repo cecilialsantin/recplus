@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<!-- 📌 Modal de edición de productos -->
+<div id="modal-editar-producto" class="modal" style="display: none;">
+    <div class="modal-content">
+        <div class="form-header">
+            <h4>Editar Producto</h4>
+            <button type="button" class="btn-cancelar" onclick="cerrarModalEdicion()">
+                <i class="fa-solid fa-rectangle-xmark"></i>
+            </button>
+        </div>
+        <form id="form-editar-producto" class="form-box">
+            <div class="form-group">
+                <label for="edit_codigo_base">Código Base:</label>
+                <input type="text" id="edit_codigo_base" class="form-control" required>
+            </div>
+
+            <div class="form-group">
+                <label for="edit_codigo_tango">Código Tango:</label>
+                <input type="text" id="edit_codigo_tango" class="form-control" required>
+            </div>
+
+            <div class="form-group">
+                <label for="edit_ins_mat_prod">INS/MAT/PROD:</label>
+                <input type="text" id="edit_ins_mat_prod" class="form-control" required>
+            </div>
+
+            <div class="form-group">
+                <label for="edit_proveedor">Proveedor:</label>
+                <input type="text" id="edit_proveedor" class="form-control" required>
+            </div>
+
+            <button type="button" class="btn-guardar" onclick="guardarCambiosProductoBase()">
+                <i class="fa-solid fa-floppy-disk"></i> Guardar Cambios
+            </button>
+        </form>
+    </div>
+</div>
+
+
+
+<div class="welcome-bar">
+    <h2>Gestión de productos</h2>
+       <!-- 🔹 Botón para abrir el formulario de carga (Solo para Admin) -->
+       {% if current_user.rol == "admin" %}
+       <button id="mostrar-formulario" class="btn-productoBase"><i class="fa-solid fa-square-plus"></i>Producto Nuevo</button>
+   {% endif %}
+
+</div>
+    <!-- 📌 Formulario de Carga de Productos -->
+    <div id="formulario-producto">
+        
+        <div class="form-header">
+            <h4>Agregar Producto</h4>
+        </div>
+        
+        <form id="form-agregar-producto" class="form-box">
+            <div class="form-group">
+                <label for="codigo_base">Código Base:</label>
+                <input type="text" id="codigo_base" class="form-control" required>
+            </div>
+
+            <div class="form-group">
+                <label for="codigo_tango">Código Tango:</label>
+                <input type="text" id="codigo_tango" class="form-control" required>
+            </div>
+
+            <div class="form-group">
+                <label for="ins_mat_prod">INS/MAT/PROD:</label>
+                <input type="text" id="ins_mat_prod" class="form-control" required>
+            </div>
+
+            <div class="form-group">
+                <label for="proveedor">Proveedor:</label>
+                <input type="text" id="proveedor" class="form-control" required>
+            </div>
+
+            <button type="submit" class="btn-guardar"><i class="fa-solid fa-floppy-disk"></i></button>
+        </form>
+    </div>
+
+    <!-- 📌 Tabla de Productos -->
+    <table class="table" id="tabla-productosBase">
+        <thead>
+            <tr>
+                <th>Código Base</th>
+                <th>Código Tango</th>
+                <th>INS/MAT/PROD</th>
+                <th>Proveedor</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody id="tabla-productosBase">
+            <!-- Aquí se llenarán los productos dinámicamente con JavaScript -->
+        </tbody>
+    </table>
+    <!-- Botón de Volver -->
+    <button class="btn-volver" onclick="window.location.href='/home'">
+        <i class="fas fa-arrow-left"></i> Volver
+    </button>
+{% endblock %}

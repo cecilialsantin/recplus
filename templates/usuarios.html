@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="welcome-bar">
+    <h2>Gestión de usuarios</h2>
+</div>
+    <!-- 📌 Formulario de Registro -->
+        <form id="form-registrar-usuario" class="form-box">
+            <div class="form-group">
+                <label for="new-username">Nombre de Usuario:</label>
+                <input type="text" id="new-username" class="form-control" required>
+            </div>
+
+            <div class="form-group">
+                <label for="new-password">Contraseña:</label>
+                <input type="password" id="new-password" class="form-control" required>
+            </div>
+
+            <div class="form-group">
+                <label for="new-rol">Rol:</label>
+                <select id="new-rol" class="form-control">
+                    <option value="deposito">Depósito</option>
+                    <option value="garantia">Garantía</option>
+                </select>
+            </div>
+
+            <button type="submit" class="btn btn-success">Registrar</button>
+        </form>
+        <p id="admin-message"></p>
+
+
+    <!-- 📌 Tabla de Usuarios -->
+    <table class="table" id="tabla-usuarios">
+        <thead>
+            <tr>
+                <th>Usuario</th>
+                <th>Rol</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Se llenará dinámicamente con JavaScript -->
+        </tbody>
+    </table>
+</div>
+
+<!-- Botón de Volver -->
+<button class="btn-volver" onclick="window.location.href='/home'">
+    <i class="fas fa-arrow-left"></i> Volver
+</button>
+
+{% endblock %}
