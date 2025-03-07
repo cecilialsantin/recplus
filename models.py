@@ -37,17 +37,12 @@ class ProductoBase(db.Model):
     codigo_tango = db.Column(db.String(20),nullable=False)
     ins_mat_prod = db.Column(db.String(255), nullable=False)  # INS/MAT/PROD
     proveedor = db.Column(db.String(255), nullable=False)  # Proveedor asociado
+    cat_partida = db.Column(db.String(20), nullable=True) # categoria de la partida
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
 
     # Relación con Producto (para validaciones futuras si es necesario)
     productos = db.relationship('Producto', backref='producto_base', lazy=True)
-
-
-# 📌 Tabla intermedia para la relación muchos a muchos entre Recepcion y Producto
-recepcion_productos = db.Table('recepcion_productos',
-    db.Column('recepcion_id', db.Integer, db.ForeignKey('recepciones.id'), primary_key=True),
-    db.Column('producto_id', db.Integer, db.ForeignKey('productos.id'), primary_key=True)  # 🔹 Referencia a productos.id
-)
-
 
 # 📌 Modelo para Productos (Se escanean primero, antes de asociarlos a una Recepción)
 class Producto(db.Model):
@@ -68,6 +63,8 @@ class Producto(db.Model):
     # Relación con ProductoBase
     codigo_base = db.Column(db.String(20), db.ForeignKey('productos_base.codigo_base'), nullable=False)
 
+    # ✅ Clave foránea a Recepcion (cada producto tiene UNA recepción)
+    recepcion_id = db.Column(db.Integer, db.ForeignKey('recepciones.id'), nullable=True)
 
 # 📌 Modelo para la Recepción del Producto (Se crean y asocian productos escaneados)
 class Recepcion(db.Model):
@@ -77,8 +74,8 @@ class Recepcion(db.Model):
     subproceso = db.Column(db.String(100), nullable=False)
     proveedor = db.Column(db.String(255), nullable=False)
 
-    # ✅ Relación muchos a muchos con productos
-    productos = db.relationship('Producto', secondary=recepcion_productos, backref='recepciones', lazy=True) 
+     # ✅ Relación uno a muchos (una recepción tiene muchos productos)
+    productos = db.relationship('Producto', backref='recepcion', lazy=True)
 
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))

@@ -230,7 +230,6 @@ function actualizarTablaProductos() {
 }
 
 // 📌 Función para crear una recepción y asociarle productos
-// 📌 Función para crear una recepción y asociarle productos
 async function crearRecepcion() {
     const subproceso = document.getElementById("subproceso").value;
     const mensaje = document.getElementById("recepcion-message");
@@ -300,14 +299,15 @@ async function crearRecepcion() {
     }
 }
 
-
-// 📌 Función para cargar las recepciones y mostrarlas en la tabla
+// 📌 Función para cargar todas las recepciones y mostrarlas en la tabla
 async function cargarRecepciones() {
     const tablaRecepciones = document.querySelector("#tabla-recepciones tbody");
 
     try {
         const response = await fetch("/recepciones");
         const data = await response.json();
+
+        console.log("📌 Recepciones obtenidas:", data); // 🔹 Depuración
 
         // Limpiar la tabla antes de agregar los datos
         tablaRecepciones.innerHTML = "";
@@ -319,13 +319,66 @@ async function cargarRecepciones() {
                 <td>${recepcion.fecha}</td>
                 <td>${recepcion.subproceso}</td>
                 <td>${recepcion.proveedor}</td>
-                <td>${recepcion.productos.map(p => p.codigo).join(", ")}</td>
+                <td>${recepcion.productos.length} producto(s)</td>
+                <td>
+                    <button class="btn-detalles" onclick="toggleDetalles(${recepcion.id})">
+                        <i class="fas fa-eye"></i> Ver Detalles
+                    </button>
+                </td>
             `;
+
+            // Fila para los productos (inicialmente oculta)
+            const detallesFila = document.createElement("tr");
+            detallesFila.id = `detalles-${recepcion.id}`;
+            detallesFila.style.display = "none";
+            detallesFila.innerHTML = `
+                <td colspan="6">
+                    <table class="tabla-detalle-productos">
+                        <thead>
+                            <tr>
+                                <th>Código</th>
+                                <th>INS/MAT/PROD</th>
+                                <th>Nro Lote</th>
+                                <th>Fecha Vto</th>
+                                <th>Temperatura</th>
+                                <th>Cantidad</th>
+                                <th>Nro Partida</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${recepcion.productos.map(p => `
+                                <tr>
+                                    <td>${p.codigo}</td>
+                                    <td>${p.ins_mat_prod}</td>
+                                    <td>${p.nro_lote}</td>
+                                    <td>${p.fecha_vto}</td>
+                                    <td>${p.temperatura ? `${p.temperatura}°C` : "-"}</td>
+                                    <td>${p.cantidad_ingresada}</td>
+                                    <td>${p.nro_partida_asignada}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </td>
+            `;
+
             tablaRecepciones.appendChild(fila);
+            tablaRecepciones.appendChild(detallesFila);
         });
 
     } catch (error) {
-        console.error("Error al obtener las recepciones:", error);
+        console.error("❌ Error al obtener las recepciones:", error);
+    }
+}
+
+
+// 📌 Función para expandir/contraer los detalles de productos
+function toggleDetalles(recepcionId) {
+    const detallesFila = document.getElementById(`detalles-${recepcionId}`);
+    if (detallesFila.style.display === "none") {
+        detallesFila.style.display = "table-row";
+    } else {
+        detallesFila.style.display = "none";
     }
 }
 
@@ -347,9 +400,18 @@ async function cargarRecepcion() {
         const response = await fetch(`/recepcion/${recepcionId}`);
         const data = await response.json();
 
+        console.log("📌 Respuesta de la API:", data); // 🔹 Depuración en consola
+
         if (response.ok) {
             mensaje.textContent = "✅ Recepción cargada correctamente.";
             mensaje.style.color = "green";
+
+            if (!Array.isArray(data.productos) || data.productos.length === 0) {
+                console.warn("⚠️ La recepción no tiene productos asociados.");
+                mensaje.textContent = "⚠️ La recepción no tiene productos asociados.";
+                mensaje.style.color = "orange";
+                return;
+            }
 
             // Limpiar la tabla antes de agregar los nuevos datos
             tablaRecepcion.innerHTML = "";
@@ -362,7 +424,7 @@ async function cargarRecepcion() {
                     <td>${producto.ins_mat_prod}</td>
                     <td>${producto.nro_lote}</td>
                     <td>${producto.fecha_vto}</td>
-                    <td>${producto.temperatura}</td>
+                    <td>${producto.temperatura ? `${producto.temperatura}°C` : "-"}</td>
                     <td>${producto.cantidad_ingresada}</td>
                     <td>${producto.nro_partida_asignada}</td>
                 `;
@@ -370,38 +432,38 @@ async function cargarRecepcion() {
             });
 
         } else {
+            console.error("❌ Error en la API:", data);
             mensaje.textContent = data.error || "⚠️ No se encontró la recepción.";
             mensaje.style.color = "red";
         }
     } catch (error) {
-        console.error("Error:", error);
-        mensaje.textContent = "❌ Error al comunicarse con el servidor.";
+        console.error("❌ Error al comunicarse con el servidor:", error);
+        mensaje.textContent = "❌ No se pudo conectar con el servidor.";
         mensaje.style.color = "red";
     }
 }
 
-// 📌 Función para filtrar recepciones por subproceso o proveedor
+// 📌 Función para filtrar recepciones por subproceso o proveedor ingresado manualmente
 async function filtrarRecepciones() {
-    const subprocesoFiltro = document.getElementById("filtro-subproceso").value;
-    const proveedorFiltro = document.getElementById("filtro-proveedor").value;
+    
+    const proveedorFiltro = document.getElementById("filtro-proveedor").value.trim().toLowerCase();
     const tablaRecepciones = document.querySelector("#tabla-recepciones tbody");
 
     try {
         const response = await fetch("/recepciones");
         const data = await response.json();
 
-        // Filtrar los datos según la selección del usuario
+        // Filtrar las recepciones según lo que se escribió en el input de proveedor
         const recepcionesFiltradas = data.filter(recepcion => {
             return (
-                (subprocesoFiltro === "" || recepcion.subproceso === subprocesoFiltro) &&
-                (proveedorFiltro === "" || recepcion.proveedor === proveedorFiltro)
+                (proveedorFiltro === "" || recepcion.proveedor.toLowerCase().includes(proveedorFiltro))
             );
         });
 
         // Limpiar la tabla antes de agregar los datos filtrados
         tablaRecepciones.innerHTML = "";
 
-        // Mostrar solo las recepciones filtradas
+        // Mostrar recepciones filtradas manteniendo el formato de `cargarRecepciones()`
         recepcionesFiltradas.forEach(recepcion => {
             const fila = document.createElement("tr");
             fila.innerHTML = `
@@ -409,12 +471,108 @@ async function filtrarRecepciones() {
                 <td>${recepcion.fecha}</td>
                 <td>${recepcion.subproceso}</td>
                 <td>${recepcion.proveedor}</td>
-                <td>${recepcion.productos.map(p => `${p.codigo} (${p.ins_mat_prod})`).join(", ")}</td>
+                <td>${recepcion.productos.length} producto(s)</td>
+                <td>
+                    <button class="btn-detalles" onclick="toggleDetalles(${recepcion.id})">
+                        <i class="fas fa-eye"></i> Ver Detalles
+                    </button>
+                </td>
             `;
+
+            // Fila para los productos (inicialmente oculta)
+            const detallesFila = document.createElement("tr");
+            detallesFila.id = `detalles-${recepcion.id}`;
+            detallesFila.style.display = "none";
+            detallesFila.innerHTML = `
+                <td colspan="6">
+                    <table class="tabla-detalle-productos">
+                        <thead>
+                            <tr>
+                                <th>Código</th>
+                                <th>INS/MAT/PROD</th>
+                                <th>Nro Lote</th>
+                                <th>Fecha Vto</th>
+                                <th>Temperatura</th>
+                                <th>Cantidad</th>
+                                <th>Nro Partida</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${recepcion.productos.map(p => `
+                                <tr>
+                                    <td>${p.codigo}</td>
+                                    <td>${p.ins_mat_prod}</td>
+                                    <td>${p.nro_lote}</td>
+                                    <td>${p.fecha_vto}</td>
+                                    <td>${p.temperatura ? `${p.temperatura}°C` : "-"}</td>
+                                    <td>${p.cantidad_ingresada}</td>
+                                    <td>${p.nro_partida_asignada}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </td>
+            `;
+
             tablaRecepciones.appendChild(fila);
+            tablaRecepciones.appendChild(detallesFila);
         });
 
     } catch (error) {
-        console.error("Error al filtrar las recepciones:", error);
+        console.error("❌ Error al filtrar las recepciones:", error);
     }
 }
+
+// 📌 Detectar cambios en el input y filtrar automáticamente mientras se escribe
+document.getElementById("filtro-proveedor").addEventListener("input", filtrarRecepciones);
+
+
+async function cargarProveedores() {
+    const filtroProveedor = document.getElementById("filtro-proveedor");
+
+    if (!filtroProveedor) {
+        console.error("❌ ERROR: No se encontró el elemento #filtro-proveedor en el DOM.");
+        return;
+    }
+
+    try {
+        const response = await fetch("/proveedores");
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
+        const proveedores = await response.json();
+        console.log("📌 Proveedores obtenidos:", proveedores);
+
+        if (!proveedores || proveedores.length === 0) {
+            console.warn("⚠️ No hay proveedores disponibles.");
+            return;
+        }
+
+        // ✅ Limpiar opciones existentes antes de agregar nuevas
+        filtroProveedor.innerHTML = '<option value="">Todos los Proveedores</option>';
+
+        // ✅ Agregar opciones como `option.value`
+        proveedores.forEach(proveedor => {
+            let option = document.createElement("option");
+            option.value = proveedor;   // 🔹 Value es el nombre del proveedor
+            option.textContent = proveedor;  // 🔹 Lo que se muestra en la UI
+            filtroProveedor.appendChild(option);
+        });
+
+        console.log("✅ Proveedores cargados correctamente en el select.");
+
+    } catch (error) {
+        console.error("❌ ERROR al obtener los proveedores:", error);
+    }
+}
+
+
+document.addEventListener("DOMContentLoaded", function () {
+    console.log("📌 DOM completamente cargado.");
+    
+    setTimeout(() => {
+        cargarRecepciones();
+        cargarProveedores(); // Ejecuta después de que el DOM está listo
+    }, 500);  // 🔹 Espera 500ms antes de ejecutarse
+});
+
+

@@ -45,6 +45,8 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
+        console.log(`🔍 Solicitando recepción con ID: ${idRecepcion}`); // Depuración
+
         try {
             const response = await fetch(`/recepcion/${idRecepcion}`, {
                 method: "GET",
@@ -53,11 +55,22 @@ document.addEventListener("DOMContentLoaded", function () {
 
             const data = await response.json();
 
+            console.log("📌 Respuesta de la API en Automatización:", data); // Depuración
+
             if (response.ok) {
                 mensajeCarga.textContent = "✅ Recepción cargada correctamente.";
                 mensajeCarga.style.color = "green";
+
+                if (!Array.isArray(data.productos) || data.productos.length === 0) {
+                    console.warn("⚠️ La recepción no tiene productos asociados.");
+                    mensajeCarga.textContent = "⚠️ La recepción no tiene productos asociados.";
+                    mensajeCarga.style.color = "orange";
+                    return;
+                }
+
                 actualizarTablaRecepcion(data.productos);
             } else {
+                console.error("❌ Error en la API:", data);
                 mensajeCarga.textContent = data.error || "❌ Error al cargar la recepción.";
                 mensajeCarga.style.color = "red";
             }
@@ -70,8 +83,15 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // 📌 Función para actualizar la tabla con los productos de la recepción
     function actualizarTablaRecepcion(productos) {
+        console.log("📌 Productos recibidos para actualizar la tabla:", productos); // Depuración
+
         const tablaBody = document.querySelector("#tabla-recepcion tbody");
         tablaBody.innerHTML = ""; // Limpiar la tabla antes de agregar nuevos datos
+
+        if (!productos.length) {
+            console.warn("⚠️ No hay productos asociados a esta recepción.");
+            return;
+        }
 
         productos.forEach((producto) => {
             const fila = document.createElement("tr");
@@ -79,11 +99,14 @@ document.addEventListener("DOMContentLoaded", function () {
                 <td>${producto.codigo}</td>
                 <td>${producto.nro_lote}</td>
                 <td>${producto.fecha_vto}</td>
-                <td>${producto.temperatura}°C</td>
+                <td>${producto.temperatura ? `${producto.temperatura}°C` : "-"}</td>
                 <td>${producto.cantidad_ingresada}</td>
                 <td>${producto.nro_partida_asignada}</td>
             `;
             tablaBody.appendChild(fila);
         });
+
+        console.log("✅ Tabla de recepción actualizada correctamente.");
     }
-});
+
+}); // 🔹 **Se agrega esta llave de cierre que estaba faltando**

@@ -534,8 +534,6 @@ footer {
     color: #e2a5da; /* Verde suave */
 }
 
-
-
 /* 🔹 Contenedor de la tabla para hacerla más ancha */
 .table-container {
     max-width: 100%;
@@ -630,9 +628,22 @@ tbody tr:hover {
     background-color: #e48023;
 }
 
+.btn-detalles{
+    background-color: #95cea5;
+    color: white;
+    border: none;
+    padding: 5px;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 3px;
+    margin-bottom: 3px;
+    font-size: 12px;
+    transition: background 0.2s;
+}
+
 /* 🔹 Estilo de la tabla de recepciones */
 .table-container {
-    width: 90%;
+    width: 98%;
     margin-top: 20px;
     overflow-x: auto;
 }

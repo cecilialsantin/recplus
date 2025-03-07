@@ -106,7 +106,6 @@ def obtener_productos():
 
     return jsonify(productos_json)
 
-
 # 📌 Ruta para registrar una recepción con varios productos
 @recepciones_bp.route('/recepcion', methods=['POST'])
 @login_required
@@ -127,15 +126,16 @@ def registrar_recepcion():
     db.session.add(nueva_recepcion)
     db.session.flush()  # ⚠️ Permite usar `nueva_recepcion.id` antes del commit
 
-    # 🔹 Relacionar los productos escaneados con la recepción
+    # ✅ Asignar cada producto a la recepción (sin duplicados)
     for codigo in productos_codigos:
-        producto = Producto.query.filter_by(codigo=codigo).first()
-        if producto:
-            nueva_recepcion.productos.append(producto)
+        productos = Producto.query.filter_by(codigo=codigo).all()
+        for producto in productos:
+            producto.recepcion_id = nueva_recepcion.id  # ✅ Asigna la recepción
 
     db.session.commit()
 
     return jsonify({"mensaje": "✅ Recepción registrada correctamente", "id": nueva_recepcion.id})
+
 
 # 📌 Ruta para obtener todas las recepciones con sus productos
 @recepciones_bp.route('/recepciones', methods=['GET'])
@@ -156,26 +156,30 @@ def obtener_recepciones():
             "temperatura": p.temperatura,
             "cantidad_ingresada": p.cantidad_ingresada,
             "nro_partida_asignada": p.nro_partida_asignada
-        } for p in r.productos]
+        } for p in Producto.query.filter_by(recepcion_id=r.id).all()]  # 🔹 Traer productos correctamente
     } for r in recepciones]
 
     return jsonify(recepciones_json)
 
 
-# 📌 Ruta para obtener una recepción con todos sus productos y detalles
+# 📌 Ruta para obtener una recepcion con sus productos
 @recepciones_bp.route('/recepcion/<int:recepcion_id>', methods=['GET'])
 @login_required
 def obtener_recepcion_con_productos(recepcion_id):
-    # Buscar la recepción en la base de datos
+    # 🔍 Buscar la recepción directamente
     recepcion = Recepcion.query.get(recepcion_id)
-    
+
     if not recepcion:
         return jsonify({"error": "⚠️ Recepción no encontrada"}), 404
-    
-    # Obtener todos los productos relacionados con la recepción
-    productos = recepcion.productos  # Ahora se obtiene directamente desde la relación muchos a muchos
 
-    # Estructurar la respuesta JSON con todos los detalles
+    # 🔹 Obtener productos relacionados directamente desde la clave foránea en `productos`
+    productos_asociados = Producto.query.filter_by(recepcion_id=recepcion.id).all()
+
+    # ✅ Depuración: Imprimir todos los productos asociados a la recepción
+    print(f"📌 Recepción {recepcion.id} encontrada. Productos asociados:")
+    for producto in productos_asociados:
+        print(f"🔹 {producto.codigo} - {producto.ins_mat_prod} - {producto.nro_lote} - {producto.cantidad_ingresada}")
+
     recepcion_json = {
         "id": recepcion.id,
         "fecha": str(recepcion.fecha),
@@ -189,7 +193,23 @@ def obtener_recepcion_con_productos(recepcion_id):
             "temperatura": p.temperatura,
             "cantidad_ingresada": p.cantidad_ingresada,
             "nro_partida_asignada": p.nro_partida_asignada
-        } for p in productos]
+        } for p in productos_asociados]  # ✅ Los productos vienen de la relación con `recepcion_id`
     }
 
     return jsonify(recepcion_json)
+
+# Ruta para filtrar proveedores desde productos_base
+@recepciones_bp.route('/proveedores', methods=['GET'])
+@login_required
+def obtener_proveedores():
+    proveedores_unicos = db.session.query(ProductoBase.proveedor).distinct().all()
+    proveedores_lista = [p[0] for p in proveedores_unicos]  # Extraer los valores únicos
+
+    return jsonify(proveedores_lista)
+
+
+
+
+
+
+
