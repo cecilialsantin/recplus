@@ -36,10 +36,11 @@ document.addEventListener("DOMContentLoaded", function () {
 
             const codigoBase = document.getElementById("codigo_base").value.trim();
             const codigoTango = document.getElementById("codigo_tango").value.trim();
+            const cat_partida = document.getElementById("cat_partida").value.trim();
             const insMatProd = document.getElementById("ins_mat_prod").value.trim();
             const proveedor = document.getElementById("proveedor").value.trim();
 
-            if (!codigoBase || !codigoTango || !insMatProd || !proveedor) {
+            if (!codigoBase || !codigoTango || cat_partida || !insMatProd || !proveedor) {
                 alert("⚠️ Todos los campos son obligatorios.");
                 return;
             }
@@ -47,6 +48,7 @@ document.addEventListener("DOMContentLoaded", function () {
             const producto = {
                 codigo_base: codigoBase,
                 codigo_tango: codigoTango,
+                cat_partida: cat_partida,
                 ins_mat_prod: insMatProd,
                 proveedor: proveedor
             };
@@ -104,6 +106,7 @@ async function cargarProductosBase() {
             fila.innerHTML = `
                 <td>${producto.codigo_base}</td>
                 <td>${producto.codigo_tango}</td>
+                <td>${producto.cat_partida}</td>
                 <td>${producto.ins_mat_prod}</td>
                 <td>${producto.proveedor}</td>
                 <td>
@@ -134,6 +137,7 @@ async function modificarProductoBase(codigoBase) {
         // Precargar los valores en el formulario modal
         document.getElementById("edit_codigo_base").value = producto.codigo_base;
         document.getElementById("edit_codigo_tango").value = producto.codigo_tango;
+        document.getElementById("edit_cat_partida").value = producto.cat_partida;
         document.getElementById("edit_ins_mat_prod").value = producto.ins_mat_prod;
         document.getElementById("edit_proveedor").value = producto.proveedor;
 
@@ -156,6 +160,7 @@ async function guardarCambiosProductoBase() {
     const productoEditado = {
         codigo_base: document.getElementById("edit_codigo_base").value.trim(),
         codigo_tango: document.getElementById("edit_codigo_tango").value.trim(),
+        cat_partida: document.getElementById("edit_cat_partida").value.trim(),
         ins_mat_prod: document.getElementById("edit_ins_mat_prod").value.trim(),
         proveedor: document.getElementById("edit_proveedor").value.trim(),
     };
