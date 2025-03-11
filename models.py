@@ -6,14 +6,6 @@ from datetime import datetime, timezone
 bcrypt = Bcrypt()
 
 # 📌 Modelo para Usuarios (Autenticación)
-from config import db
-from flask_login import UserMixin
-from flask_bcrypt import Bcrypt
-from datetime import datetime, timezone
-
-bcrypt = Bcrypt()
-
-# 📌 Modelo para Usuarios (Autenticación)
 class Usuario(db.Model, UserMixin):
     __tablename__ = 'usuarios'
     id = db.Column(db.Integer, primary_key=True)
@@ -43,6 +35,17 @@ class ProductoBase(db.Model):
 
     # Relación con Producto (para validaciones futuras si es necesario)
     productos = db.relationship('Producto', backref='producto_base', lazy=True)
+
+
+# 📌 Modelo para gestionar la última partida manualmente
+class PartidaReferencia(db.Model):
+    __tablename__ = 'partida_referencia'
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    cat_partida = db.Column(db.String(5), nullable=False, unique=True)  # Categoría de partida (PI, RH, etc.)
+    ultima_partida = db.Column(db.String(10), nullable=False)  # Última partida asignada manualmente
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
+
 
 # 📌 Modelo para Productos (Se escanean primero, antes de asociarlos a una Recepción)
 class Producto(db.Model):
