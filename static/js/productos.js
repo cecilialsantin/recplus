@@ -40,7 +40,7 @@ document.addEventListener("DOMContentLoaded", function () {
             const insMatProd = document.getElementById("ins_mat_prod").value.trim();
             const proveedor = document.getElementById("proveedor").value.trim();
 
-            if (!codigoBase || !codigoTango || cat_partida || !insMatProd || !proveedor) {
+            if (!codigoBase || !codigoTango || !cat_partida || !insMatProd || !proveedor) {
                 alert("⚠️ Todos los campos son obligatorios.");
                 return;
             }
@@ -125,7 +125,9 @@ async function cargarProductosBase() {
 // 📌 Función para abrir el formulario de edición de un producto base
 async function modificarProductoBase(codigoBase) {
     try {
-        // Obtener datos actuales del producto
+        console.log(`🔍 Buscando producto base con código: ${codigoBase}`);
+
+        // Obtener datos actuales del producto desde el backend
         const response = await fetch(`/admin/productosBase/detalle/${codigoBase}`);
         const producto = await response.json();
 
@@ -134,23 +136,26 @@ async function modificarProductoBase(codigoBase) {
             return;
         }
 
+        console.log("✅ Producto encontrado:", producto);
+
         // Precargar los valores en el formulario modal
         document.getElementById("edit_codigo_base").value = producto.codigo_base;
         document.getElementById("edit_codigo_tango").value = producto.codigo_tango;
-        document.getElementById("edit_cat_partida").value = producto.cat_partida;
+        document.getElementById("edit_cat_partida").value = producto.cat_partida;  // 🔹 Ahora correctamente asignado
         document.getElementById("edit_ins_mat_prod").value = producto.ins_mat_prod;
         document.getElementById("edit_proveedor").value = producto.proveedor;
 
-        // Guardar el código base original en un atributo data para identificarlo en la actualización
+        // Guardar el código base original en un atributo `data-codigo-original`
         document.getElementById("form-editar-producto").setAttribute("data-codigo-original", producto.codigo_base);
 
-        // Mostrar el modal de edición
+        // ✅ Mostrar el modal de edición
         document.getElementById("modal-editar-producto").style.display = "block";
 
     } catch (error) {
         console.error("❌ Error al obtener datos del producto:", error);
     }
 }
+
 
 // 📌 Función para actualizar los datos del producto
 async function guardarCambiosProductoBase() {
@@ -160,7 +165,7 @@ async function guardarCambiosProductoBase() {
     const productoEditado = {
         codigo_base: document.getElementById("edit_codigo_base").value.trim(),
         codigo_tango: document.getElementById("edit_codigo_tango").value.trim(),
-        cat_partida: document.getElementById("edit_cat_partida").value.trim(),
+        cat_partida: document.getElementById("edit_cat_partida").value.trim(),  // ✅ Ahora correctamente asignado
         ins_mat_prod: document.getElementById("edit_ins_mat_prod").value.trim(),
         proveedor: document.getElementById("edit_proveedor").value.trim(),
     };
@@ -171,6 +176,8 @@ async function guardarCambiosProductoBase() {
     }
 
     try {
+        console.log("📤 Enviando actualización al backend:", productoEditado);
+        
         const response = await fetch(`/admin/productosBase/modificar/${codigoOriginal}`, {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
@@ -181,6 +188,7 @@ async function guardarCambiosProductoBase() {
 
         if (response.ok) {
             alert(data.mensaje);
+            console.log("✅ Producto actualizado correctamente.");
             document.getElementById("modal-editar-producto").style.display = "none"; // Cerrar modal
             cargarProductosBase();
         } else {
@@ -190,6 +198,7 @@ async function guardarCambiosProductoBase() {
         console.error("❌ Error al modificar producto:", error);
     }
 }
+
 
 // 📌 Función para cerrar el modal de edición
 function cerrarModalEdicion() {

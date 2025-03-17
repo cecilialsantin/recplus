@@ -13,6 +13,11 @@
         <button class="logout-btn" onclick="logout()">
             <i class="fas fa-sign-out-alt"></i> Logout
         </button>   
+
+        <button id="btn-abrir-modal" class="btn-modificar-partida">
+            <i class="fas fa-edit"></i> Modificar Partida
+        </button>
+
         <button class="selenium-btn" onclick="window.location.href='/automatizacion'">
             <i class="fa-solid fa-robot"></i> Automatizar Loyal
         </button> 
@@ -31,6 +36,34 @@
 
     <!-- Contenedor de dos columnas -->
     <div class="home-container grid-container">
+
+
+
+    <!-- Modal para modificar partidas manualmente -->
+        <div id="modalPartida" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="cerrarModal()">&times;</span>
+                <h2>Modificar Partida Manualmente</h2>
+                <label for="select-cat-partida"></label>
+                <select id="select-cat-partida" onchange="cargarPartidaReferencia(this.value)">
+                    <option value="">Categoría...</option>
+                    <option value="PI">PI - Producto Importado</option>
+                    <option value="PD">PD - Producto a Distribuir</option>
+                    <option value="PE">PE - Producto Elab Prop</option>
+                    <option value="IP">IP - Insumo Producción</option>
+                    <option value="IG">IG - Mat Prim Granel</option>
+                    <option value="SE">SE - Granel Elab Prop</option>
+                    <option value="IM">IM - Materias Primas</option>
+                    <option value="RE">RE - Repuesto/Comp Elect</option>
+                </select>
+        
+                <label for="input-ultima-partida"></label>
+                <input type="text" id="input-ultima-partida" placeholder="Ingresar la nueva ultima partida">
+        
+                <button id="btn-guardar-partida">Guardar Cambios</button>
+            </div>
+        </div>
+        
 
        <!-- 🔹 Sección para Escaneo de Productos -->
         <div id="scan-section" class="form-box">
@@ -106,13 +139,14 @@
             <table id="tabla-productos-escaneados">
                 <thead>
                     <tr>
-                        <th>Seleccionar</th>
+                        <th><i class="fa-solid fa-square-check"></i></th>
                         <th>Código</th>
                         <th>INS/MAT/PROD</th>
                         <th>N° Lote</th>
                         <th>Fecha Vto</th>
                         <th>Temperatura</th>
                         <th>Cantidad</th>
+                        <th>Nro Partida</th>
                         <th>Eliminar</th>
                     </tr>
                 </thead>

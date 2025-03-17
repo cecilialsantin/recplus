@@ -1,3 +1,73 @@
+// 📌 Abrir el modal modificar partidas manualmente
+document.getElementById("btn-abrir-modal").addEventListener("click", function () {
+    document.getElementById("modalPartida").style.display = "block";
+});
+
+// 📌 Cerrar el modal modificar partidas manualmente
+function cerrarModal() {
+    document.getElementById("modalPartida").style.display = "none";
+}
+
+// 📌 Función para cargar la última partida de una categoría
+async function cargarPartidaReferencia(catPartida) {
+    if (!catPartida) return;
+
+    try {
+        const response = await fetch(`/ultima-partida/${catPartida}`);
+        const data = await response.json();
+
+        const inputPartida = document.getElementById("input-ultima-partida");
+        const btnGuardar = document.getElementById("btn-guardar-partida");
+
+        if (data.ultima_partida) {
+            inputPartida.value = data.ultima_partida;
+            btnGuardar.setAttribute("data-modo", "editar");
+            btnGuardar.textContent = "Actualizar Partida";
+        } else {
+            inputPartida.value = "";
+            btnGuardar.setAttribute("data-modo", "nueva");
+            btnGuardar.textContent = "Agregar Nueva Partida";
+        }
+
+    } catch (error) {
+        console.error("❌ Error al obtener la última partida:", error);
+    }
+}
+
+// 📌 Guardar o actualizar la partida manualmente
+document.getElementById("btn-guardar-partida").addEventListener("click", async function () {
+    const catPartida = document.getElementById("select-cat-partida").value;
+    const nuevaPartida = document.getElementById("input-ultima-partida").value.trim();
+    const modo = this.getAttribute("data-modo");
+
+    if (!nuevaPartida) {
+        alert("⚠️ Debes ingresar una partida.");
+        return;
+    }
+
+    const endpoint = modo === "editar" ? "/actualizar-partida" : "/agregar-partida";
+    const metodo = modo === "editar" ? "PUT" : "POST";
+
+    try {
+        const response = await fetch(endpoint, {
+            method: metodo,
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ cat_partida: catPartida, ultima_partida: nuevaPartida })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            alert(`✅ Partida ${modo === "editar" ? "actualizada" : "agregada"} correctamente.`);
+            cerrarModal();
+        } else {
+            alert(`❌ Error: ${data.error}`);
+        }
+
+    } catch (error) {
+        console.error("❌ Error al guardar la partida:", error);
+    }
+});
 
 // 📌 Función para analizar un código UDI GS1
 function analizarUDI(codigoUDI) {
@@ -95,7 +165,7 @@ let productosEscaneados = [];
 
 // 📌 Función para escanear un producto y guardarlo en la base de datos
 async function escanearProducto() {
-    console.log("📌 Se hizo clic en el botón de registrar"); // 👈 Verifica que se activa
+    console.log("📌 Se hizo clic en el botón de registrar");
 
     const codigo = document.getElementById("codigo").value.trim();
     const insMatProd = document.getElementById("ins-mat-prod").value.trim();
@@ -105,12 +175,11 @@ async function escanearProducto() {
     const fechaVto = document.getElementById("fecha_vto").value.trim();
     const temperatura = document.getElementById("temperatura").value.trim();
     const cantidad = document.getElementById("cantidad_ingresada").value.trim();
-    const nroPartida = document.getElementById("nro_partida_asignada").value.trim();
     const mensaje = document.getElementById("producto-mensaje");
 
     console.log(`📌 Código escaneado: ${codigo}`);
 
-    if (!codigo || !insMatProd || !proveedor || !codigoTango || !nroLote || !fechaVto || !cantidad || !nroPartida) {
+    if (!codigo || !insMatProd || !proveedor || !codigoTango || !nroLote || !fechaVto || !cantidad) {
         mensaje.textContent = "⚠️ Complete todos los campos antes de registrar el producto.";
         mensaje.style.color = "red";
         return;
@@ -126,12 +195,11 @@ async function escanearProducto() {
                 codigo,
                 codigo_tango: codigoTango,
                 ins_mat_prod: insMatProd,
-                proveedor: proveedor,
+                proveedor,
                 nro_lote: nroLote,
                 fecha_vto: fechaVto,
                 temperatura,
-                cantidad_ingresada: cantidad,
-                nro_partida_asignada: nroPartida
+                cantidad_ingresada: cantidad
             })
         });
 
@@ -141,38 +209,28 @@ async function escanearProducto() {
         if (response.ok) {
             mensaje.textContent = "✅ Producto registrado correctamente.";
             mensaje.style.color = "green";
-            
 
             // 🔹 Agregar producto escaneado a la tabla con checkbox
             let tabla = document.querySelector("#tabla-productos-escaneados tbody");
             let fila = document.createElement("tr");
             fila.innerHTML = `
-                <td><input type="checkbox" class="producto-checkbox" value="${codigo}"></td>
-                <td>${codigo}</td>
-                <td>${insMatProd}</td>
-                <td>${nroLote}</td>
-                <td>${fechaVto}</td>
-                <td>${temperatura || "-"}</td>
-                <td>${cantidad}</td>
-                <td><button onclick="eliminarProducto(this, '${codigo}')" class="btn-eliminar">❌</button></td>
+                <td><input type="checkbox" class="producto-checkbox" value="${data.codigo}"></td>
+                <td>${data.codigo}</td>
+                <td>${data.ins_mat_prod}</td>
+                <td>${data.nro_lote}</td>
+                <td>${data.fecha_vto}</td>
+                <td>${data.temperatura || "-"}</td>
+                <td>${data.cantidad_ingresada}</td>
+                <td>${data.nro_partida_asignada}</td> <!-- ✅ Muestra la partida generada por el backend -->
+                <td><button onclick="eliminarProducto(this, '${data.codigo}')" class="btn-eliminar">❌</button></td>
             `;
             tabla.appendChild(fila);
 
             // 🔹 Agregar producto escaneado a la lista temporal
-            productosEscaneados.push({
-                codigo,
-                codigo_tango: codigoTango,
-                ins_mat_prod: insMatProd,
-                proveedor: proveedor,
-                nro_lote: nroLote,
-                fecha_vto: fechaVto,
-                temperatura: temperatura ? parseFloat(temperatura) : null,
-                cantidad_ingresada: cantidad,
-                nro_partida_asignada: nroPartida
-            });
+            productosEscaneados.push(data);
 
             console.log("📌 Productos escaneados hasta ahora:", productosEscaneados);
-            
+
             // ✅ Guardar en localStorage
             localStorage.setItem("productosEscaneados", JSON.stringify(productosEscaneados));
             actualizarTablaProductos();  // ✅ Actualizar la tabla
@@ -183,11 +241,6 @@ async function escanearProducto() {
             document.getElementById("fecha_vto").value = "";
             document.getElementById("temperatura").value = "";
             document.getElementById("cantidad_ingresada").value = "";
-            document.getElementById("nro_partida_asignada").value = "";
-
-            // ✅ LIMPIAR FORMULARIO DESPUÉS DEL REGISTRO
-            limpiarFormulario();
-
         } else {
             mensaje.textContent = data.error || "⚠️ No se pudo registrar el producto.";
             mensaje.style.color = "red";
@@ -198,6 +251,7 @@ async function escanearProducto() {
         mensaje.style.color = "red";
     }
 }
+
 
 // 📌 Al cargar la página, restaurar productos escaneados desde localStorage
 document.addEventListener("DOMContentLoaded", () => {
@@ -223,6 +277,7 @@ function actualizarTablaProductos() {
             <td>${producto.fecha_vto}</td>
             <td>${producto.temperatura || "-"}</td>
             <td>${producto.cantidad_ingresada}</td>
+            <td>${producto.nro_partida_asignada}</td>
             <td><button onclick="eliminarProducto(this, '${producto.codigo}')" class="btn-eliminar">❌</button></td>
         `;
         tabla.appendChild(fila);
