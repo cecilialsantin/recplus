@@ -34,11 +34,6 @@
 
     </div>
 
-    <!-- Contenedor de dos columnas -->
-    <div class="home-container grid-container">
-
-
-
     <!-- Modal para modificar partidas manualmente -->
         <div id="modalPartida" class="modal">
             <div class="modal-content">
@@ -65,110 +60,109 @@
         </div>
         
 
-       <!-- 🔹 Sección para Escaneo de Productos -->
-        <div id="scan-section" class="form-box">
-            <h3>Escanear Producto</h3>
-
+      <!-- 🔹 Formulario para crear una recepción -->
+      <div id="recepcion-section" class="form-box-reception">
+        <h3>Nueva Recepción</h3>
+        <div class="input-row">
             <div class="input-group">
-                <label for="codigo">Código</label>
-                <input type="text" id="codigo" placeholder="Escanear código" oninput="analizarUDI(this.value)">
+                <label for="subproceso">Subproceso</label>
+                <select id="subproceso">
+                    <option value="">Seleccione un Subproceso</option>
+                    <option value="Recepción">Recepción</option>
+                </select>
             </div>
-
             <div class="input-group">
-                <label for="codigo_tango">Código Tango</label>
-                <input type="text" id="codigo_tango" disabled>
+                <label for="proveedor">Proveedor</label>
+                <input type="text" id="proveedor" list="proveedor-sugerencias" placeholder="Ingrese proveedor" required>
+                <datalist id="proveedor-sugerencias"></datalist>
             </div>
-
-            <div class="input-group">
-                <label for="ins-mat-prod">INS/MAT/PROD</label>
-                <input type="text" id="ins-mat-prod" disabled>
+            <div class="btn-group">
+                <button onclick="crearRecepcion()"><i class="fas fa-plus"></i> Crear Recepción</button>
             </div>
-
-            <div class="input-group">
-                <label for="proveedor-producto">Proveedor</label>
-                <input type="text" id="proveedor-producto" disabled>
-            </div>
-
-            <div class="input-group">
-                <label for="nro_lote">Número de Lote</label>
-                <input type="text" id="nro_lote">
-            </div>
-
-            <div class="input-group">
-                <label for="fecha_vto">Fecha de Vencimiento</label>
-                <input type="date" id="fecha_vto">
-            </div>
-
-            <div class="input-group">
-                <label for="temperatura">Temperatura</label>
-                <input type="number" id="temperatura">
-            </div>
-
-            <div class="input-group">
-                <label for="cantidad_ingresada">Cantidad</label>
-                <input type="number" id="cantidad_ingresada">
-            </div>
-
-            <div class="input-group">
-                <label for="nro_partida_asignada">Número de Partida</label>
-                <input type="text" id="nro_partida_asignada">
-            </div>
-
-            <button onclick="escanearProducto()">
-                <i class="fa-solid fa-file-arrow-up icono"></i> Registrar
-            </button>
-            
-            <p id="producto-mensaje"></p>
         </div>
-
-        <!-- 🔹 Formulario para crear una recepción -->
-        <div id="recepcion-section" class="form-box">
-            <h3>Crear Recepción</h3>
-            <select id="subproceso">
-                <option value="">Seleccione un Subproceso</option>
-                <option value="Recepción">Recepción</option>
-            </select>
-            <select id="proveedor">
-                <option value="">Seleccione un Proveedor</option>
-                <!-- Se llenará dinámicamente desde ProductoBase -->
-            </select>
-            
-            <!-- ✅ Nuevo: Lista de productos escaneados para asociar a la recepción -->
-            <div class="table-container">
-                <h4>Productos Escaneados</h4>
-            <table id="tabla-productos-escaneados">
-                <thead>
-                    <tr>
-                        <th><i class="fa-solid fa-square-check"></i></th>
-                        <th>Código</th>
-                        <th>INS/MAT/PROD</th>
-                        <th>N° Lote</th>
-                        <th>Fecha Vto</th>
-                        <th>Temperatura</th>
-                        <th>Cantidad</th>
-                        <th>Nro Partida</th>
-                        <th>Eliminar</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <!-- Aquí se insertarán los productos escaneados dinámicamente -->
-                </tbody>
-            </table>
-        </div>
-
-
-            <button onclick="crearRecepcion()"><i class="fas fa-plus"></i> Crear Recepción</button>
-            <p id="recepcion-message"></p>
-            
-            <button class="btn-ver-recepciones" onclick="window.location.href='/recepciones-listado'">
-                <i class="fas fa-list"></i> Ver Recepciones
-            </button>
-            
-             
-        </div>
-           <!-- 🔹 Botón para ver todas las recepciones -->
-      
-
+        <p id="recepcion-message"></p>
     </div>
+    
+
+<!-- 🔹 Sección para Escaneo de Productos (OCULTA inicialmente) -->
+<div id="scan-section" class="form-box-scan" style="display: none;">
+    <h3>Escanear Productos</h3>
+
+    <!-- Grupo superior: campos CODIGO ESCANEADO y autocompletados -->
+    <div class="scan-upper-group-codigo">
+        <div class="input-group">
+            <label for="codigo">Código</label>
+            <input type="text" id="codigo" placeholder="Escanear código" oninput="analizarUDI(this.value)">
+        </div>
+    </div>
+    <div class="scan-upper-group">
+        <div class="input-group">
+            <label for="codigo_tango">Código Tango</label>
+            <input type="text" id="codigo_tango" disabled>
+        </div>
+        <div class="input-group">
+            <label for="ins-mat-prod">INS/MAT/PROD</label>
+            <input type="text" id="ins-mat-prod" disabled>
+        </div>
+        <div class="input-group">
+            <label for="proveedor-producto">Proveedor</label>
+            <input type="text" id="proveedor-producto" disabled>
+        </div>
+        <div class="input-group">
+            <label for="nro_lote">Número de Lote</label>
+            <input type="text" id="nro_lote">
+        </div>
+        <div class="input-group">
+            <label for="fecha_vto">Fecha de Vencimiento</label>
+            <input type="date" id="fecha_vto">
+        </div>
+    </div>
+
+    <!-- Grupo inferior: campos a completar por el usuario -->
+    <div class="scan-lower-group">
+        <div class="input-group">
+            <label for="temperatura">Temperatura</label>
+            <input type="number" id="temperatura">
+        </div>
+        <div class="input-group">
+            <label for="cantidad_ingresada">Cantidad</label>
+            <input type="number" id="cantidad_ingresada">
+        </div>
+    </div>
+
+    <button onclick="escanearProducto()">
+        <i class="fa-solid fa-file-arrow-up icono"></i> Registrar Producto
+    </button>
+
+    <p id="producto-mensaje"></p>
+
+    <!-- Tabla de Productos Escaneados -->
+    <div class="table-container">
+        <h4>Productos Escaneados</h4>
+        <table id="tabla-productos-escaneados">
+            <thead>
+                <tr>
+                    <th>Nro Recepcion(ID)</th>
+                    <th>Código Escaneado</th>
+                    <th>Código Tango</th>
+                    <th>INS/MAT/PROD</th>
+                    <th>Proveedor</th>
+                    <th>N° Lote</th>
+                    <th>Fecha Vto</th>
+                    <th>Temperatura</th>
+                    <th>Cantidad</th>
+                    <th>Nro Partida</th>
+                    <th>Eliminar</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Aquí se insertarán los productos escaneados dinámicamente -->
+            </tbody>
+        </table>
+        <button class="btn-ver-recepciones" onclick="window.location.href='/recepciones-listado'">
+            <i class="fas fa-list"></i> Recepción Completa
+        </button>
+    </div>
+</div>
 
 {% endblock %}

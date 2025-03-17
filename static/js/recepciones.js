@@ -149,37 +149,49 @@ function eliminarProducto(boton, codigo) {
 
 // 📌 Función para limpiar los campos del formulario
 function limpiarFormulario() {
-    document.getElementById("codigo").value = "";
-    document.getElementById("codigo_tango").value = "";
-    document.getElementById("ins-mat-prod").value = "";
-    document.getElementById("proveedor-producto").value = "";
-    document.getElementById("nro_lote").value = "";
-    document.getElementById("fecha_vto").value = "";
-    document.getElementById("temperatura").value = "";
-    document.getElementById("cantidad_ingresada").value = "";
-    document.getElementById("nro_partida_asignada").value = "";
+    const campos = [
+        "codigo",
+        "codigo_tango",
+        "ins-mat-prod",
+        "proveedor-producto",
+        "nro_lote",
+        "fecha_vto",
+        "temperatura",
+        "cantidad_ingresada",
+        "nro_partida_asignada"
+    ];
+    
+    campos.forEach(id => {
+        const elem = document.getElementById(id);
+        if (elem) {
+            elem.value = "";
+        } else {
+            console.warn(`No se encontró el elemento con id: ${id}`);
+        }
+    });
 }
+
 
 // 🔹 Lista temporal para productos antes de asociarlos a una recepción
 let productosEscaneados = [];
 
-// 📌 Función para escanear un producto y guardarlo en la base de datos
 async function escanearProducto() {
     console.log("📌 Se hizo clic en el botón de registrar");
 
+    const recepcionId = localStorage.getItem("recepcion_id"); // Obtener la recepción actual
+    if (!recepcionId) {
+        alert("⚠️ Debe crear una recepción antes de escanear productos.");
+        return;
+    }
+
     const codigo = document.getElementById("codigo").value.trim();
-    const insMatProd = document.getElementById("ins-mat-prod").value.trim();
-    const proveedor = document.getElementById("proveedor-producto").value.trim();
-    const codigoTango = document.getElementById("codigo_tango").value.trim();
     const nroLote = document.getElementById("nro_lote").value.trim();
     const fechaVto = document.getElementById("fecha_vto").value.trim();
     const temperatura = document.getElementById("temperatura").value.trim();
     const cantidad = document.getElementById("cantidad_ingresada").value.trim();
     const mensaje = document.getElementById("producto-mensaje");
 
-    console.log(`📌 Código escaneado: ${codigo}`);
-
-    if (!codigo || !insMatProd || !proveedor || !codigoTango || !nroLote || !fechaVto || !cantidad) {
+    if (!codigo || !nroLote || !fechaVto || !cantidad) {
         mensaje.textContent = "⚠️ Complete todos los campos antes de registrar el producto.";
         mensaje.style.color = "red";
         return;
@@ -193,13 +205,11 @@ async function escanearProducto() {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
                 codigo,
-                codigo_tango: codigoTango,
-                ins_mat_prod: insMatProd,
-                proveedor,
                 nro_lote: nroLote,
                 fecha_vto: fechaVto,
                 temperatura,
-                cantidad_ingresada: cantidad
+                cantidad_ingresada: cantidad,
+                recepcion_id: recepcionId // Se asocia la recepción
             })
         });
 
@@ -210,37 +220,28 @@ async function escanearProducto() {
             mensaje.textContent = "✅ Producto registrado correctamente.";
             mensaje.style.color = "green";
 
-            // 🔹 Agregar producto escaneado a la tabla con checkbox
+            limpiarFormulario()
+
+            // Agregar producto a la tabla visual con todos los campos
             let tabla = document.querySelector("#tabla-productos-escaneados tbody");
             let fila = document.createElement("tr");
             fila.innerHTML = `
-                <td><input type="checkbox" class="producto-checkbox" value="${data.codigo}"></td>
-                <td>${data.codigo}</td>
+                <td>${recepcionId}</td>
+                <td>${codigo}</td>
+                <td>${data.codigo_tango}</td>
                 <td>${data.ins_mat_prod}</td>
-                <td>${data.nro_lote}</td>
-                <td>${data.fecha_vto}</td>
-                <td>${data.temperatura || "-"}</td>
-                <td>${data.cantidad_ingresada}</td>
-                <td>${data.nro_partida_asignada}</td> <!-- ✅ Muestra la partida generada por el backend -->
-                <td><button onclick="eliminarProducto(this, '${data.codigo}')" class="btn-eliminar">❌</button></td>
+                <td>${data.proveedor}</td>
+                <td>${nroLote}</td>
+                <td>${fechaVto}</td>
+                <td>${temperatura || "-"}</td>
+                <td>${cantidad}</td>
+                <td>${data.nro_partida_asignada}</td>
+                <td><button class="btn-eliminar" onclick="eliminarProducto(this, ${data.producto_id})"><i class="fa-solid fa-trash"></i></button></td>
             `;
             tabla.appendChild(fila);
 
-            // 🔹 Agregar producto escaneado a la lista temporal
-            productosEscaneados.push(data);
+           
 
-            console.log("📌 Productos escaneados hasta ahora:", productosEscaneados);
-
-            // ✅ Guardar en localStorage
-            localStorage.setItem("productosEscaneados", JSON.stringify(productosEscaneados));
-            actualizarTablaProductos();  // ✅ Actualizar la tabla
-
-            // 🔹 Limpiar campos después del escaneo
-            document.getElementById("codigo").value = "";
-            document.getElementById("nro_lote").value = "";
-            document.getElementById("fecha_vto").value = "";
-            document.getElementById("temperatura").value = "";
-            document.getElementById("cantidad_ingresada").value = "";
         } else {
             mensaje.textContent = data.error || "⚠️ No se pudo registrar el producto.";
             mensaje.style.color = "red";
@@ -251,7 +252,6 @@ async function escanearProducto() {
         mensaje.style.color = "red";
     }
 }
-
 
 // 📌 Al cargar la página, restaurar productos escaneados desde localStorage
 document.addEventListener("DOMContentLoaded", () => {
@@ -278,81 +278,118 @@ function actualizarTablaProductos() {
             <td>${producto.temperatura || "-"}</td>
             <td>${producto.cantidad_ingresada}</td>
             <td>${producto.nro_partida_asignada}</td>
-            <td><button onclick="eliminarProducto(this, '${producto.codigo}')" class="btn-eliminar">❌</button></td>
+            <td><button onclick="eliminarProducto(this, '${producto.codigo}')"><i class="fa-solid fa-trash"></i></button></td>
         `;
         tabla.appendChild(fila);
     });
 }
 
+// funcion para buscar el exacto proveedor 
+document.addEventListener("DOMContentLoaded", function () {
+    // 📌 Evento para sugerencias de proveedores al escribir
+    document.getElementById("proveedor").addEventListener("input", async function () {
+        const proveedorInput = this.value.trim();
+        const datalist = document.getElementById("proveedor-sugerencias");
+
+        if (proveedorInput.length < 3) {
+            return; // No buscar si tiene menos de 3 caracteres
+        }
+
+        try {
+            const response = await fetch(`/admin/productosBase/buscar-proveedor/${proveedorInput}`);
+            const proveedores = await response.json();
+
+            if (response.ok) {
+                datalist.innerHTML = ""; // Limpiar opciones previas
+
+                proveedores.forEach(prov => {
+                    const option = document.createElement("option");
+                    option.value = prov.proveedor; // Mostrar el nombre exacto del proveedor registrado
+                    datalist.appendChild(option);
+                });
+            }
+        } catch (error) {
+            console.error("❌ Error al buscar proveedores:", error);
+        }
+    });
+});
+
+
 // 📌 Función para crear una recepción y asociarle productos
 async function crearRecepcion() {
     const subproceso = document.getElementById("subproceso").value;
+    const proveedor = document.getElementById("proveedor").value;
     const mensaje = document.getElementById("recepcion-message");
 
-    // 🔹 Inicializar proveedor antes de la validación
-    let proveedor = null;
-
-    // 🔹 Obtener productos seleccionados
-    let productosSeleccionados = [];
-    document.querySelectorAll(".producto-checkbox:checked").forEach(checkbox => {
-        productosSeleccionados.push(checkbox.value);
-    });
-
-    if (productosSeleccionados.length === 0) {
-        mensaje.textContent = "⚠️ No hay productos seleccionados para asociar a la recepción.";
-        mensaje.style.color = "red";
-        return;
-    }
-
-    // ✅ Tomar el proveedor del primer producto escaneado
-    const primerProducto = productosEscaneados.find(prod => productosSeleccionados.includes(prod.codigo));
-    
-    if (primerProducto) {
-        proveedor = primerProducto.proveedor; // ✅ Asignar proveedor si se encuentra un producto
-    }
-
     if (!subproceso || !proveedor) {
-        mensaje.textContent = "⚠️ Complete todos los campos antes de crear la recepción.";
+        mensaje.textContent = "⚠️ Complete todos los campos.";
         mensaje.style.color = "red";
         return;
     }
-
-    mensaje.textContent = "⏳ Creando recepción...";
 
     try {
-        const response = await fetch("/recepcion", {
+        const response = await fetch("/crear-recepcion", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                subproceso,
-                proveedor, // ✅ Enviar el proveedor del primer producto escaneado
-                productos: productosSeleccionados // ✅ Enviar solo los productos marcados
-            })
+            body: JSON.stringify({ subproceso, proveedor })
         });
 
         const data = await response.json();
 
         if (response.ok) {
-            mensaje.textContent = `✅ Recepción creada con ID: ${data.id}`;
+            mensaje.textContent = "Recepción creada exitosamente, continuar con el escaneo de los productos.";
             mensaje.style.color = "green";
+            mensaje.style.fontSize = "20px";
+            mensaje.style.border = "2px solid pink";
+            mensaje.style.borderRadius = "25px";
+            mensaje.style.padding = "10px";
 
-            localStorage.removeItem("productosEscaneados");  // ✅ Borrar productos una vez creada la recepción
-            productosEscaneados = [];
-            actualizarTablaProductos();
 
-            // 🔹 Limpiar la tabla de productos escaneados
-            document.querySelector("#tabla-productos-escaneados tbody").innerHTML = "";
+            // Guardar ID de recepción en localStorage
+            localStorage.setItem("recepcion_id", data.recepcion_id);
 
+            // ✅ Habilitar la sección de escaneo
+            document.getElementById("scan-section").style.display = "block";
         } else {
-            mensaje.textContent = data.error || "⚠️ No se pudo crear la recepción.";
+            mensaje.textContent = data.error || "❌ Error al crear la recepción.";
             mensaje.style.color = "red";
         }
     } catch (error) {
-        console.error("Error:", error);
+        console.error("❌ Error al comunicarse con el servidor:", error);
         mensaje.textContent = "❌ Error al comunicarse con el servidor.";
         mensaje.style.color = "red";
     }
 }
+
+// Funcion para eliminar un producto
+async function eliminarProducto(btn, productoId) {
+    if (!confirm("⚠️ ¿Estás seguro de eliminar este producto?")) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`/eliminar-producto/${productoId}`, {
+            method: "DELETE"
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            alert(data.mensaje);
+            // Elimina la fila (tr) que contiene el botón
+            const row = btn.closest("tr");
+            if (row) {
+                row.remove();
+            }
+        } else {
+            alert(data.error || "❌ Error al eliminar producto.");
+        }
+    } catch (error) {
+        console.error("❌ Error al eliminar producto:", error);
+    }
+}
+
+
 
 // 📌 Función para cargar todas las recepciones y mostrarlas en la tabla
 async function cargarRecepciones() {
@@ -458,8 +495,9 @@ async function cargarRecepcion() {
         console.log("📌 Respuesta de la API:", data); // 🔹 Depuración en consola
 
         if (response.ok) {
-            mensaje.textContent = "✅ Recepción cargada correctamente.";
+            mensaje.textContent = "✅ Recepción cargada correctamente";
             mensaje.style.color = "green";
+            mensaje.style.fontSize = "12px";
 
             if (!Array.isArray(data.productos) || data.productos.length === 0) {
                 console.warn("⚠️ La recepción no tiene productos asociados.");
