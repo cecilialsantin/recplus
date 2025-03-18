@@ -286,21 +286,25 @@ function actualizarTablaProductos() {
 
 // funcion para buscar el exacto proveedor 
 document.addEventListener("DOMContentLoaded", function () {
-    // 📌 Evento para sugerencias de proveedores al escribir
-    document.getElementById("proveedor").addEventListener("input", async function () {
-        const proveedorInput = this.value.trim();
-        const datalist = document.getElementById("proveedor-sugerencias");
+    const proveedorInput = document.getElementById("proveedor");
+    const datalist = document.getElementById("proveedor-sugerencias");
+    let listaProveedores = [];
 
-        if (proveedorInput.length < 3) {
+    // 📌 Evento para sugerencias de proveedores al escribir
+    proveedorInput.addEventListener("input", async function () {
+        const proveedorTexto = this.value.trim();
+
+        if (proveedorTexto.length < 3) {
             return; // No buscar si tiene menos de 3 caracteres
         }
 
         try {
-            const response = await fetch(`/admin/productosBase/buscar-proveedor/${proveedorInput}`);
+            const response = await fetch(`/admin/productosBase/buscar-proveedor/${proveedorTexto}`);
             const proveedores = await response.json();
 
             if (response.ok) {
                 datalist.innerHTML = ""; // Limpiar opciones previas
+                listaProveedores = proveedores.map(prov => prov.proveedor); // Guardar la lista de proveedores
 
                 proveedores.forEach(prov => {
                     const option = document.createElement("option");
@@ -310,6 +314,14 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         } catch (error) {
             console.error("❌ Error al buscar proveedores:", error);
+        }
+    });
+
+    // 📌 Validar que el proveedor seleccionado existe en la lista
+    proveedorInput.addEventListener("change", function () {
+        if (!listaProveedores.includes(this.value)) {
+            alert("⚠️ Seleccione un proveedor válido de la lista.");
+            this.value = ""; // Limpiar el input si no es válido
         }
     });
 });
@@ -326,6 +338,14 @@ async function crearRecepcion() {
         mensaje.style.color = "red";
         return;
     }
+
+     // 📌 Verificar que el proveedor ingresado está en la lista de sugerencias
+     const opciones = [...document.getElementById("proveedor-sugerencias").options].map(opt => opt.value);
+     if (!opciones.includes(proveedor)) {
+         mensaje.textContent = "⚠️ Debe seleccionar un proveedor válido de la lista.";
+         mensaje.style.color = "red";
+         return;
+     }
 
     try {
         const response = await fetch("/crear-recepcion", {
