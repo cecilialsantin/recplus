@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+{% block title %}Editar Recepción{% endblock %}
+
+{% block content %}
+<div class="welcome-bar">
+    <h2>Editar Recepción</h2>
+    <button class="btn-agregarProducto" onclick="mostrarModalAgregar()">
+        <i class="fa-solid fa-plus"></i> Agregar Producto
+    </button>
+</div>
+
+<div class="table-container">
+    <h3>Detalles de la Recepción</h3>
+    <table id="tabla-recepcion">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Fecha</th>
+                <th>Subproceso</th>
+                <th>Proveedor</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>{{ recepcion_id }}</td>
+                <td>{{ fecha }}</td>
+                <td>{{ subproceso }}</td>
+                <td>{{ proveedor }}</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<div class="table-container">
+    <h3>Productos Asociados</h3>
+    <table id="tabla-productos">
+        <thead>
+            <tr>
+                <th>Código</th>
+                <th>Código Tango</th>
+                <th>INS/MAT/PROD</th>
+                <th>Proveedor</th>
+                <th>Nro Lote</th>
+                <th>Fecha Vto</th>
+                <th>Temperatura</th>
+                <th>Cantidad</th>
+                <th>Nro Partida</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for producto in productos %}
+            <tr id="producto-{{ producto.id }}">
+                <td>{{ producto.codigo }}</td>
+                <td>{{ producto.codigo_tango }}</td>
+                <td>{{ producto.ins_mat_prod }}</td>
+                <td>{{ producto.proveedor }}</td>
+                <td>{{ producto.nro_lote }}</td>
+                <td>{{ producto.fecha_vto }}</td>
+                <td>{{ producto.temperatura if producto.temperatura else "-" }}</td>
+                <td>{{ producto.cantidad_ingresada }}</td>
+                <td>{{ producto.nro_partida_asignada }}</td>
+              
+                    <td>
+                        <button class="btn-eliminar" onclick="eliminarProducto(this)" data-id="{{ producto.id }}">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                    
+                
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- MODAL PARA AGREGAR PRODUCTO -->
+<div id="modalAgregarProducto" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="cerrarModalAgregar()">&times;</span>
+        <h3>Agregar Producto</h3>
+        <input type="hidden" id="recepcion-id" value="{{ recepcion_id }}">
+
+        <div class="input-group">
+            <label for="codigo">Código</label>
+            <input type="text" id="codigo" placeholder="Escanear código" oninput="analizarUDI(this.value)">
+        </div>
+        <div class="input-group">
+            <label for="codigo_tango">Código Tango</label>
+            <input type="text" id="codigo_tango" disabled>
+        </div>
+        <div class="input-group">
+            <label for="ins-mat-prod">INS/MAT/PROD</label>
+            <input type="text" id="ins-mat-prod" disabled>
+        </div>
+        <div class="input-group">
+            <label for="proveedor-producto">Proveedor</label>
+            <input type="text" id="proveedor-producto" disabled>
+        </div>
+        <div class="input-group">
+            <label for="nro_lote">Número de Lote</label>
+            <input type="text" id="nro_lote">
+        </div>
+        <div class="input-group">
+            <label for="fecha_vto">Fecha de Vencimiento</label>
+            <input type="date" id="fecha_vto">
+        </div>
+        <div class="input-group">
+            <label for="temperatura">Temperatura</label>
+            <input type="number" id="temperatura">
+        </div>
+        <div class="input-group">
+            <label for="cantidad_ingresada">Cantidad</label>
+            <input type="number" id="cantidad_ingresada">
+        </div>
+        <button class="btn-agregarProducto" style="margin-top:10px;" onclick="agregarProducto()">
+            <i class="fa-solid fa-file-arrow-up icono"></i> Guardar
+        </button>
+        <p id="producto-mensaje"></p>
+    </div>
+</div>
+
+<div class="botones-lista-eliminados">
+    <button class="btn-listaprodeliminados" onclick="mostrarProductosEliminados()">
+        <i class="fas fa-eye"></i> Ultimos Eliminados
+    </button>
+    
+    <button class="btn-borrarlistaeliminados" onclick="limpiarProductosEliminados()">
+        <i class="fas fa-trash"></i> Vaciar Lista Eliminados
+    </button>
+</div>
+
+<!-- Botón de Volver -->
+<button class="btn-volver" onclick="window.location.href='/home'">
+    <i class="fas fa-arrow-left"></i> Volver
+</button>
+
+{% endblock %}

@@ -13,6 +13,28 @@ recepciones_bp = Blueprint('recepciones', __name__)
 def recepciones_listado():
     return render_template('recepciones.html')
 
+
+# 📌 Página para ver, editar, agregar productos, editar productos y eliminar productos de una recepción específica
+@recepciones_bp.route('/recepcion/editar/<int:recepcion_id>')
+@login_required
+def editar_recepcion(recepcion_id):
+    recepcion = Recepcion.query.get(recepcion_id)
+
+    if not recepcion:
+        return jsonify({"error": "⚠️ Recepción no encontrada"}), 404
+
+    # Obtener los productos asociados a la recepción
+    productos_asociados = Producto.query.filter_by(recepcion_id=recepcion.id).all()
+
+    return render_template(
+        'recepcion_editar.html',
+        recepcion_id=recepcion.id,
+        fecha=recepcion.fecha,
+        subproceso=recepcion.subproceso,
+        proveedor=recepcion.proveedor,
+        productos=productos_asociados  # Pasamos los productos a la plantilla
+    )
+
 # Ruta para obtener la ultima partida
 @recepciones_bp.route('/ultima-partida/<string:cat_partida>', methods=['GET'])
 @login_required
@@ -145,79 +167,6 @@ def generar_nueva_partida(cat_partida):
     db.session.commit()  # ✅ Guardar cambios en la base de datos
 
     return nueva_partida
-'''
-@recepciones_bp.route('/escanear', methods=['POST'])
-@login_required
-def escanear():
-    data = request.json
-    codigo = data.get("codigo")
-
-    print(f"🔍 Código recibido en backend para búsqueda: {codigo}")
-
-    producto_base = ProductoBase.query.filter_by(codigo_base=codigo).first()
-
-    if not producto_base:
-        print("❌ Producto no encontrado en la base de datos.")  # Depuración
-        return jsonify({"error": "⚠️ Producto no registrado en la base de datos"}), 400
-
-    if not producto_base.cat_partida:
-        print("⚠️ No se encontró la categoría de partida.")
-        return jsonify({"error": "⚠️ No se encontró la categoría de partida."}), 400
-
-    print(f"✅ Producto encontrado: {producto_base.ins_mat_prod}")
-
-    # 🔹 1️⃣ Verificar si hay una referencia manual en `partida_referencia`
-    referencia_manual = PartidaReferencia.query.filter_by(cat_partida=producto_base.cat_partida).first()
-
-    if referencia_manual:
-        ultima_partida = referencia_manual.ultima_partida
-        print(f"📌 Última partida manualmente asignada: {ultima_partida}")
-    else:
-        # 🔹 2️⃣ Si no hay referencia manual, buscar la última partida en la tabla `productos`
-        ultima_partida = (
-            db.session.query(Producto.nro_partida_asignada)
-            .filter(Producto.nro_partida_asignada.like(f"{producto_base.cat_partida}%"))
-            .order_by(Producto.nro_partida_asignada.desc())
-            .scalar()
-        )
-        print(f"📌 Última partida registrada en productos: {ultima_partida if ultima_partida else 'Ninguna'}")
-
-    # 🔹 3️⃣ Generar la nueva partida basada en la última existente
-    nueva_partida = generar_nueva_partida(producto_base.cat_partida)
-
-    print(f"✅ Nueva partida generada: {nueva_partida}")
-
-    # 🔹 4️⃣ Crear el nuevo producto con la partida asignada
-    nuevo_producto = Producto(
-        codigo=codigo,
-        codigo_tango=producto_base.codigo_tango,
-        ins_mat_prod=producto_base.ins_mat_prod,
-        proveedor=producto_base.proveedor,
-        nro_lote=data.get("nro_lote"),
-        fecha_vto=data.get("fecha_vto"),
-        temperatura=data.get("temperatura"),
-        cantidad_ingresada=data.get("cantidad_ingresada"),
-        nro_partida_asignada=nueva_partida,  # ✅ Se asigna la partida generada
-        codigo_base=producto_base.codigo_base  # Relación con ProductoBase
-    )
-
-    db.session.add(nuevo_producto)
-    db.session.commit()
-
-    return jsonify({
-        "mensaje": "✅ Producto registrado exitosamente",
-        "codigo": nuevo_producto.codigo,
-        "codigo_tango": nuevo_producto.codigo_tango,
-        "ins_mat_prod": nuevo_producto.ins_mat_prod,
-        "proveedor": nuevo_producto.proveedor,
-        "nro_lote": nuevo_producto.nro_lote,
-        "fecha_vto": nuevo_producto.fecha_vto,
-        "temperatura": nuevo_producto.temperatura,
-        "cantidad_ingresada": nuevo_producto.cantidad_ingresada,
-        "nro_partida_asignada": nuevo_producto.nro_partida_asignada,
-    })
-
-'''
 # Ruta para escanear
 @recepciones_bp.route('/escanear', methods=['POST'])
 @login_required
@@ -273,7 +222,6 @@ def escanear():
         "nro_partida_asignada": nuevo_producto.nro_partida_asignada,
     })
 
-
 # 📌 Ruta para obtener todos los productos escaneados y sus recepciones
 @recepciones_bp.route('/productos', methods=['GET'])
 @login_required
@@ -282,7 +230,9 @@ def obtener_productos():
     
     productos_json = [{
         "codigo": p.codigo,
+        "codigo_tango": p.codigo_tango,
         "ins_mat_prod": p.ins_mat_prod,
+        "proveedor": p.proveedor,
         "nro_lote": p.nro_lote,
         "fecha_vto": str(p.fecha_vto),
         "temperatura": p.temperatura,
@@ -317,20 +267,6 @@ def crear_recepcion():
         print(f"❌ Error en crear_recepcion: {e}")
         return jsonify({"error": "❌ Error en el servidor"}), 500
 
-# Ruta para eliminar un producto
-@recepciones_bp.route('/eliminar-producto/<int:producto_id>', methods=['DELETE'])
-@login_required
-def eliminar_producto(producto_id):
-    producto = Producto.query.get(producto_id)
-
-    if not producto:
-        return jsonify({"error": "⚠️ Producto no encontrado"}), 404
-
-    db.session.delete(producto)
-    db.session.commit()
-
-    return jsonify({"mensaje": "✅ Producto eliminado correctamente"})
-
 # 📌 Ruta para obtener todas las recepciones con sus productos
 @recepciones_bp.route('/recepciones', methods=['GET'])
 @login_required
@@ -344,7 +280,9 @@ def obtener_recepciones():
         "proveedor": r.proveedor,
         "productos": [{
             "codigo": p.codigo,
+            "codigo_tango": p.codigo_tango,
             "ins_mat_prod": p.ins_mat_prod,
+            "proveedor": p.proveedor,
             "nro_lote": p.nro_lote,
             "fecha_vto": str(p.fecha_vto),
             "temperatura": p.temperatura,
@@ -372,7 +310,7 @@ def obtener_recepcion_con_productos(recepcion_id):
     # ✅ Depuración: Imprimir todos los productos asociados a la recepción
     print(f"📌 Recepción {recepcion.id} encontrada. Productos asociados:")
     for producto in productos_asociados:
-        print(f"🔹 {producto.codigo} - {producto.ins_mat_prod} - {producto.nro_lote} - {producto.cantidad_ingresada}")
+        print(f"🔹 {producto.codigo} - - {producto.nro_partida_asignada} - {producto.ins_mat_prod} - {producto.nro_lote}")
 
     recepcion_json = {
         "id": recepcion.id,
@@ -381,7 +319,9 @@ def obtener_recepcion_con_productos(recepcion_id):
         "proveedor": recepcion.proveedor,
         "productos": [{
             "codigo": p.codigo,
+            "codigo_tango": p.codigo_tango,
             "ins_mat_prod": p.ins_mat_prod,
+            "proveedor": p.proveedor,
             "nro_lote": p.nro_lote,
             "fecha_vto": str(p.fecha_vto),
             "temperatura": p.temperatura,
@@ -392,3 +332,109 @@ def obtener_recepcion_con_productos(recepcion_id):
 
     return jsonify(recepcion_json)
 
+# 📌 Ruta para agregar un producto a una recepción
+@recepciones_bp.route('/recepcion/<int:recepcion_id>/agregar-producto', methods=['POST'])
+@login_required
+def agregar_producto_a_recepcion(recepcion_id):
+    data = request.json  # Asegurarse de recibir JSON correctamente
+
+    if not data:
+        return jsonify({"error": "⚠️ No se recibieron datos"}), 400
+
+    codigo = data.get("codigo")
+    if not codigo:
+        return jsonify({"error": "⚠️ El código del producto es obligatorio"}), 400
+
+    recepcion = Recepcion.query.get(recepcion_id)
+    if not recepcion:
+        return jsonify({"error": "⚠️ Recepción no encontrada"}), 404
+
+    # Buscar si el producto existe en la base de datos
+    producto_base = ProductoBase.query.filter_by(codigo_base=codigo).first()
+    if not producto_base:
+        return jsonify({"error": "⚠️ Producto no registrado en la base de datos"}), 400
+
+    nueva_partida = f"P-{recepcion_id}-{codigo}"  # Generar partida ficticia
+
+    nuevo_producto = Producto(
+        codigo=codigo,
+        codigo_tango=producto_base.codigo_tango,
+        ins_mat_prod=producto_base.ins_mat_prod,
+        proveedor=producto_base.proveedor,
+        nro_lote=data.get("nro_lote"),
+        fecha_vto=data.get("fecha_vto"),
+        temperatura=data.get("temperatura"),
+        cantidad_ingresada=data.get("cantidad_ingresada"),
+        nro_partida_asignada=nueva_partida,
+        recepcion_id=recepcion_id
+    )
+
+    db.session.add(nuevo_producto)
+    db.session.commit()
+
+    return jsonify({
+        "mensaje": "✅ Producto agregado exitosamente",
+        "id": nuevo_producto.id,
+        "codigo": nuevo_producto.codigo,
+        "codigo_tango": nuevo_producto.codigo_tango,
+        "ins_mat_prod": nuevo_producto.ins_mat_prod,
+        "proveedor": nuevo_producto.proveedor,
+        "nro_lote": nuevo_producto.nro_lote,
+        "fecha_vto": nuevo_producto.fecha_vto,
+        "temperatura": nuevo_producto.temperatura,
+        "cantidad_ingresada": nuevo_producto.cantidad_ingresada,
+        "nro_partida_asignada": nuevo_producto.nro_partida_asignada,
+    })
+
+'''# 📌 Ruta para eliminar un producto de una recepción
+@recepciones_bp.route('/eliminar-producto/<int:producto_id>', methods=['DELETE'])
+@login_required
+def eliminar_producto(producto_id):
+    producto = Producto.query.get(producto_id)
+
+    if not producto:
+        return jsonify({"error": "⚠️ Producto no encontrado"}), 404
+
+    # 📌 Guardar detalles del producto eliminado para el registro
+    producto_eliminado = {
+        "codigo": producto.codigo,
+        "ins_mat_prod": producto.ins_mat_prod,
+        "nro_partida_asignada": producto.nro_partida_asignada
+    }
+
+    # 📌 Eliminar el producto de la base de datos
+    db.session.delete(producto)
+    db.session.commit()
+
+    return jsonify({
+        "mensaje": "✅ Producto eliminado correctamente",
+        "producto_eliminado": producto_eliminado,
+    })'''
+
+@recepciones_bp.route('/eliminar-producto/<int:producto_id>', methods=['DELETE'])
+@login_required
+def eliminar_producto(producto_id):
+    producto = Producto.query.get(producto_id)
+
+    if not producto:
+        return jsonify({"error": "⚠️ Producto no encontrado"}), 404
+
+    # 📌 Guardar detalles del producto eliminado para el registro
+    producto_eliminado = {
+        "codigo": producto.codigo,
+        "ins_mat_prod": producto.ins_mat_prod,
+        "nro_partida_asignada": producto.nro_partida_asignada
+    }
+
+    # 📌 Eliminar el producto de la base de datos
+    db.session.delete(producto)
+    db.session.commit()
+
+    # Imprimir para depurar
+    print(f"Producto eliminado: {producto_eliminado}")
+
+    # Devolver respuesta con el producto eliminado
+    return jsonify({
+        "mensaje": "✅ Producto eliminado correctamente",
+        "producto_eliminado": producto_eliminado
+    })

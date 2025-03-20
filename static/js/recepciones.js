@@ -132,20 +132,6 @@ async function buscarProductoBase(codigoBase) {
         console.error("❌ Error al buscar el producto base:", error);
     }
 }
-// 📌 Función para eliminar un producto escaneado
-function eliminarProducto(boton, codigo) {
-    // Eliminar de la lista de productos escaneados
-    productosEscaneados = productosEscaneados.filter(producto => producto.codigo !== codigo);
-
-    // Eliminar la fila de la tabla visualmente
-    const fila = boton.closest("tr");
-    if (fila) {
-        fila.remove();
-    }
-
-    console.log("Productos escaneados después de eliminar:", productosEscaneados);
-}
-
 
 // 📌 Función para limpiar los campos del formulario
 function limpiarFormulario() {
@@ -158,7 +144,6 @@ function limpiarFormulario() {
         "fecha_vto",
         "temperatura",
         "cantidad_ingresada",
-        "nro_partida_asignada"
     ];
     
     campos.forEach(id => {
@@ -236,11 +221,8 @@ async function escanearProducto() {
                 <td>${temperatura || "-"}</td>
                 <td>${cantidad}</td>
                 <td>${data.nro_partida_asignada}</td>
-                <td><button class="btn-eliminar" onclick="eliminarProducto(this, ${data.producto_id})"><i class="fa-solid fa-trash"></i></button></td>
             `;
             tabla.appendChild(fila);
-
-           
 
         } else {
             mensaje.textContent = data.error || "⚠️ No se pudo registrar el producto.";
@@ -251,37 +233,6 @@ async function escanearProducto() {
         mensaje.textContent = "❌ Error al comunicarse con el servidor.";
         mensaje.style.color = "red";
     }
-}
-
-// 📌 Al cargar la página, restaurar productos escaneados desde localStorage
-document.addEventListener("DOMContentLoaded", () => {
-    const productosGuardados = localStorage.getItem("productosEscaneados");
-    if (productosGuardados) {
-        productosEscaneados = JSON.parse(productosGuardados);
-        actualizarTablaProductos();  // ✅ Mostrar productos guardados en la tabla
-    }
-});
-
-// 📌 Función para actualizar la tabla de productos escaneados
-function actualizarTablaProductos() {
-    let tabla = document.querySelector("#tabla-productos-escaneados tbody");
-    tabla.innerHTML = "";
-
-    productosEscaneados.forEach(producto => {
-        let fila = document.createElement("tr");
-        fila.innerHTML = `
-            <td><input type="checkbox" class="producto-checkbox" value="${producto.codigo}"></td>
-            <td>${producto.codigo}</td>
-            <td>${producto.ins_mat_prod}</td>
-            <td>${producto.nro_lote}</td>
-            <td>${producto.fecha_vto}</td>
-            <td>${producto.temperatura || "-"}</td>
-            <td>${producto.cantidad_ingresada}</td>
-            <td>${producto.nro_partida_asignada}</td>
-            <td><button onclick="eliminarProducto(this, '${producto.codigo}')"><i class="fa-solid fa-trash"></i></button></td>
-        `;
-        tabla.appendChild(fila);
-    });
 }
 
 // funcion para buscar el exacto proveedor 
@@ -325,7 +276,6 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 });
-
 
 // 📌 Función para crear una recepción y asociarle productos
 async function crearRecepcion() {
@@ -381,36 +331,6 @@ async function crearRecepcion() {
     }
 }
 
-// Funcion para eliminar un producto
-async function eliminarProducto(btn, productoId) {
-    if (!confirm("⚠️ ¿Estás seguro de eliminar este producto?")) {
-        return;
-    }
-
-    try {
-        const response = await fetch(`/eliminar-producto/${productoId}`, {
-            method: "DELETE"
-        });
-
-        const data = await response.json();
-
-        if (response.ok) {
-            alert(data.mensaje);
-            // Elimina la fila (tr) que contiene el botón
-            const row = btn.closest("tr");
-            if (row) {
-                row.remove();
-            }
-        } else {
-            alert(data.error || "❌ Error al eliminar producto.");
-        }
-    } catch (error) {
-        console.error("❌ Error al eliminar producto:", error);
-    }
-}
-
-
-
 // 📌 Función para cargar todas las recepciones y mostrarlas en la tabla
 async function cargarRecepciones() {
     const tablaRecepciones = document.querySelector("#tabla-recepciones tbody");
@@ -449,7 +369,9 @@ async function cargarRecepciones() {
                         <thead>
                             <tr>
                                 <th>Código</th>
+                                <th>Código Tango</th>
                                 <th>INS/MAT/PROD</th>
+                                <th>Proveedor</th>
                                 <th>Nro Lote</th>
                                 <th>Fecha Vto</th>
                                 <th>Temperatura</th>
@@ -461,7 +383,9 @@ async function cargarRecepciones() {
                             ${recepcion.productos.map(p => `
                                 <tr>
                                     <td>${p.codigo}</td>
+                                    <td>${p.codigo_tango}</td>
                                     <td>${p.ins_mat_prod}</td>
+                                    <td>${p.proveedor}</td>
                                     <td>${p.nro_lote}</td>
                                     <td>${p.fecha_vto}</td>
                                     <td>${p.temperatura ? `${p.temperatura}°C` : "-"}</td>
@@ -493,6 +417,7 @@ function toggleDetalles(recepcionId) {
         detallesFila.style.display = "none";
     }
 }
+
 
 // 📌 Función para cargar una recepción específica y sus productos
 async function cargarRecepcion() {
@@ -534,12 +459,15 @@ async function cargarRecepcion() {
                 const fila = document.createElement("tr");
                 fila.innerHTML = `
                     <td>${producto.codigo}</td>
+                    <td>${producto.codigo_tango}</td>
                     <td>${producto.ins_mat_prod}</td>
+                    <td>${producto.proveedor}</td>
                     <td>${producto.nro_lote}</td>
                     <td>${producto.fecha_vto}</td>
                     <td>${producto.temperatura ? `${producto.temperatura}°C` : "-"}</td>
                     <td>${producto.cantidad_ingresada}</td>
                     <td>${producto.nro_partida_asignada}</td>
+                    
                 `;
                 tablaRecepcion.appendChild(fila);
             });
@@ -587,9 +515,12 @@ async function filtrarRecepciones() {
                 <td>${recepcion.productos.length} producto(s)</td>
                 <td>
                     <button class="btn-detalles" onclick="toggleDetalles(${recepcion.id})">
-                        <i class="fas fa-eye"></i> Ver Detalles
+                        <i class="fas fa-eye"></i>
                     </button>
-                </td>
+            <button class="btn-editarRecepcion" onclick="window.location.href='/recepcion/editar/${recepcion.id}'">
+                <i class="fas fa-edit"></i>
+            </button>
+        </td>
             `;
 
             // Fila para los productos (inicialmente oculta)
@@ -602,7 +533,9 @@ async function filtrarRecepciones() {
                         <thead>
                             <tr>
                                 <th>Código</th>
+                                <th>Código Tango</th>
                                 <th>INS/MAT/PROD</th>
+                                <th>Proveedor</th>
                                 <th>Nro Lote</th>
                                 <th>Fecha Vto</th>
                                 <th>Temperatura</th>
@@ -614,7 +547,9 @@ async function filtrarRecepciones() {
                             ${recepcion.productos.map(p => `
                                 <tr>
                                     <td>${p.codigo}</td>
+                                    <td>${p.codigo_tango}</td>
                                     <td>${p.ins_mat_prod}</td>
+                                    <td>${p.proveedor}</td>
                                     <td>${p.nro_lote}</td>
                                     <td>${p.fecha_vto}</td>
                                     <td>${p.temperatura ? `${p.temperatura}°C` : "-"}</td>
@@ -689,3 +624,414 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 
+document.addEventListener("DOMContentLoaded", function () {
+    const recepcionId = window.location.pathname.split("/").pop(); // Obtener el ID de la URL
+    document.getElementById("recepcion-id").textContent = recepcionId;
+    cargarRecepcion(recepcionId);
+});
+
+// 📌 Cargar detalles de la recepción y productos asociados
+async function cargarRecepcion(recepcionId) {
+    try {
+        const response = await fetch(`/recepcion/${recepcionId}`);
+        const data = await response.json();
+
+        if (response.ok) {
+            document.getElementById("fecha-recepcion").textContent = data.fecha;
+            document.getElementById("subproceso-recepcion").textContent = data.subproceso;
+            document.getElementById("proveedor-recepcion").textContent = data.proveedor;
+
+            // Cargar los productos en la tabla
+            const tabla = document.querySelector("#tabla-productos tbody");
+            tabla.innerHTML = "";
+
+            data.productos.forEach(producto => {
+                let fila = document.createElement("tr");
+                fila.innerHTML = `
+                    <td>${producto.codigo}</td>
+                    <td>${producto.codigo_tango}</td>
+                    <td>${producto.ins_mat_prod}</td>
+                    <td>${producto.proveedor}</td>
+                    <td>${producto.nro_lote}</td>
+                    <td>${producto.fecha_vto}</td>
+                    <td>${producto.temperatura || "-"}</td>
+                    <td>${producto.cantidad_ingresada}</td>
+                    <td>${producto.nro_partida_asignada}</td>
+                    <td>
+                        <button onclick="editarProducto(${producto.id})"><i class="fas fa-edit"></i></button>
+                        <button onclick="eliminarProducto(${producto.id})"><i class="fas fa-trash"></i></button>
+                    </td>
+                `;
+                tabla.appendChild(fila);
+            });
+        } else {
+            alert(data.error || "⚠️ No se pudo cargar la recepción.");
+        }
+    } catch (error) {
+        console.error("❌ Error al cargar la recepción:", error);
+    }
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+    const recepcionId = window.location.pathname.split("/").pop();
+    document.getElementById("recepcion-id-display").textContent = recepcionId;
+    
+    // ✅ Llamamos a la función que YA EXISTE en el sistema
+    cargarRecepcion(recepcionId);
+});
+
+document.addEventListener("DOMContentLoaded", function () {
+    console.log("📌 Cargando productos en la edición...");
+    const filas = document.querySelectorAll("#tabla-productos tbody tr");
+    console.log(`✅ Se encontraron ${filas.length} filas en la tabla de productos.`);
+});
+
+
+// 📌 Función para mostrar el modal de agregar producto
+function mostrarModalAgregar() {
+    const modal = document.getElementById("modalAgregarProducto");
+    if (modal) {
+        modal.style.display = "block";
+    } else {
+        console.error("❌ ERROR: No se encontró el modal en el DOM.");
+    }
+}
+
+// 📌 Función para cerrar el modal de agregar producto
+function cerrarModalAgregar() {
+    const modal = document.getElementById("modalAgregarProducto");
+    if (modal) {
+        modal.style.display = "none";
+    }
+}
+
+// 📌 Cerrar el modal si el usuario hace clic fuera de la ventana modal
+window.onclick = function (event) {
+    const modal = document.getElementById("modalAgregarProducto");
+    if (event.target === modal) {
+        modal.style.display = "none";
+    }
+};
+
+// 📌 Agregar un `console.log()` para verificar que la función se ejecuta
+document.addEventListener("DOMContentLoaded", function () {
+    console.log("✅ Documento cargado, listo para abrir modal.");
+});
+
+
+async function agregarProducto() {
+    const recepcionId = document.getElementById("recepcion-id").value.trim(); // ✅ Obtener recepcion_id dinámicamente
+    const codigo = document.getElementById("codigo").value.trim();
+    const nroLote = document.getElementById("nro_lote").value.trim();
+    const fechaVto = document.getElementById("fecha_vto").value.trim();
+    const temperatura = document.getElementById("temperatura").value.trim();
+    const cantidad = document.getElementById("cantidad_ingresada").value.trim();
+
+    if (!recepcionId || isNaN(recepcionId)) {
+        alert("⚠️ Error: Recepción inválida. Recarga la página.");
+        return;
+    }
+
+    if (!codigo || !nroLote || !fechaVto || !cantidad) {
+        alert("⚠️ Complete todos los campos antes de registrar el producto.");
+        return;
+    }
+
+    try {
+        const response = await fetch("/escanear", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                codigo,
+                nro_lote: nroLote,
+                fecha_vto: fechaVto,
+                temperatura,
+                cantidad_ingresada: cantidad,
+                recepcion_id: parseInt(recepcionId) // ✅ Convertir a entero antes de enviar
+            })
+        });
+
+        const data = await response.json();
+        
+        if (response.ok) {
+            alert("✅ Producto agregado correctamente.");
+            
+            cerrarModalAgregar();
+
+            // ✅ Agregar el nuevo producto a la tabla de productos
+            const tabla = document.querySelector("#tabla-productos tbody");
+            const fila = document.createElement("tr");
+            fila.id = `producto-${data.producto_id}`;
+            fila.innerHTML = `
+                <td>${data.codigo}</td>
+                <td>${data.codigo_tango}</td>
+                <td>${data.ins_mat_prod}</td>
+                <td>${data.proveedor}</td>
+                <td>${data.nro_lote}</td>
+                <td>${data.fecha_vto}</td>
+                <td>${data.temperatura || "-"}</td>
+                <td>${data.cantidad_ingresada}</td>
+                <td>${data.nro_partida_asignada}</td>
+                 <td>
+                    <button class="btn-eliminar" onclick="eliminarProducto(this)" data-id="${data.producto_id}">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </td>
+                `;
+
+            tabla.appendChild(fila);
+
+        } else {
+            alert(data.error || "⚠️ No se pudo registrar el producto.");
+        }
+    } catch (error) {
+        console.error("❌ Error al comunicarse con el servidor:", error);
+        alert("❌ Error al comunicarse con el servidor.");
+    }
+}
+
+// 📌 Función para editar un producto (abrir modal de edición)
+function editarProducto(productoId) {
+    alert("Función de edición en desarrollo. Próximamente podrás modificar los datos de un producto.");
+}
+
+/*
+//Funcion para eliminar un producto de una recepcion en edicion
+async function eliminarProducto(boton) {
+    const productoId = boton.dataset.id;
+
+     
+    if (!productoId) {
+        console.error("⚠️ No se encontró el ID del producto.");
+        return;
+    }
+
+    if (!confirm("⚠️ Si eliminas este producto, la partida quedará libre. ¿Deseas continuar?")) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`/eliminar-producto/${productoId}`, {
+            method: "DELETE",
+            headers: { "Content-Type": "application/json" }
+            
+        });
+
+        const data = await response.json();
+        
+
+          // 📌 Obtener el ID de la recepción desde el HTML
+          const recepcionId = document.getElementById("recepcion-id").value;
+
+          // 📌 Volver a llamar a la API para obtener los productos actualizados
+          const productosResponse = await fetch(`/recepcion/${recepcionId}`);
+          const productosData = await productosResponse.json();
+
+          if (productosResponse.ok) {
+
+              actualizarTablaProductos(productosData.productos); // 🔄 Actualiza la tabla de productos
+
+          } else {
+              console.error("⚠️ Error al obtener productos actualizados:", productosData.error);
+          }
+
+          
+        if (response.ok) {
+
+            alert(data.mensaje)   
+              
+
+        } else {
+            alert(data.error || "❌ Error al eliminar producto.");
+        }
+    } catch (error) {
+        console.error("❌ Error al eliminar producto:", error);
+    }
+}
+
+
+// 📌 Función para actualizar solo la tabla de productos en `recepcion_editar.html`
+function actualizarTablaProductos(productos) {
+    const tabla = document.querySelector("#tabla-productos tbody");
+    tabla.innerHTML = ""; // 🔄 Limpiar la tabla antes de agregar los datos nuevos
+
+    productos.forEach(producto => {
+        let fila = document.createElement("tr");
+        fila.id = `producto-${producto.id}`;
+        fila.innerHTML = `
+            <td>${producto.codigo}</td>
+            <td>${producto.codigo_tango}</td>
+            <td>${producto.ins_mat_prod}</td>
+            <td>${producto.proveedor}</td>
+            <td>${producto.nro_lote}</td>
+            <td>${producto.fecha_vto}</td>
+            <td>${producto.temperatura || "-"}</td>
+            <td>${producto.cantidad_ingresada}</td>
+            <td>${producto.nro_partida_asignada}</td>
+            <td>
+                <button class="btn-eliminar" onclick="eliminarProducto(this)" data-id="${producto.id}">
+            </td>
+        `;
+        tabla.appendChild(fila);
+        
+    });
+
+    console.log("✅ Tabla de productos actualizada correctamente.");
+}*/ 
+
+// Función para eliminar un producto
+async function eliminarProducto(boton) {
+    const productoId = boton.dataset.id;
+    
+    if (!productoId) {
+        console.error("⚠️ No se encontró el ID del producto.");
+        return;
+    }
+
+    if (!confirm("⚠️ Si eliminas este producto, la partida quedará libre. ¿Deseas continuar?")) {
+        return;
+    }
+
+    try {
+        // Primera petición: Eliminar el producto
+        const response = await fetch(`/eliminar-producto/${productoId}`, {
+            method: "DELETE",
+            headers: { "Content-Type": "application/json" }
+        });
+
+        // Verificar que la respuesta sea válida antes de procesarla
+        if (!response.ok) {
+            throw new Error(`Error del servidor: ${response.status}`);
+        }
+
+        // Convertir la respuesta a JSON
+        const data = await response.json();
+        console.log("Respuesta completa del servidor:", data);
+
+        // Añadir producto eliminado al localStorage si existe
+        if (data && data.producto_eliminado) {
+            console.log("Añadiendo producto a lista de eliminados:", data.producto_eliminado);
+            
+            // Obtener lista existente o crear una nueva
+            let productosEliminados = [];
+            try {
+                const savedProducts = localStorage.getItem('productosEliminados');
+                if (savedProducts) {
+                    productosEliminados = JSON.parse(savedProducts);
+                }
+            } catch (e) {
+                console.error("Error al recuperar productos eliminados:", e);
+                productosEliminados = [];
+            }
+            
+            // Añadir el nuevo producto eliminado
+            productosEliminados.push(data.producto_eliminado);
+            
+            // Guardar la lista actualizada
+            localStorage.setItem('productosEliminados', JSON.stringify(productosEliminados));
+            console.log("Lista actualizada guardada en localStorage");
+        }
+
+        // Segunda petición: Obtener productos actualizados
+        const recepcionId = document.getElementById("recepcion-id").value;
+        const productosResponse = await fetch(`/recepcion/${recepcionId}`);
+        
+        if (!productosResponse.ok) {
+            throw new Error(`Error al obtener productos: ${productosResponse.status}`);
+        }
+
+        const productosData = await productosResponse.json();
+        
+        // Actualizar la tabla con los productos actualizados
+        if (productosData && productosData.productos) {
+            actualizarTablaProductos(productosData.productos);
+        } else {
+            console.error("La respuesta no contiene la propiedad 'productos':", productosData);
+        }
+        
+        // Mostrar mensaje de éxito
+        alert(data.mensaje || "✅ Producto eliminado correctamente");
+        
+    } catch (error) {
+        console.error("❌ Error en la operación:", error);
+        alert("❌ Error al procesar la solicitud: " + error.message);
+    }
+}
+
+// Función para actualizar la tabla de productos
+function actualizarTablaProductos(productos) {
+    const tabla = document.querySelector("#tabla-productos tbody");
+    
+    if (!tabla) {
+        console.error("⚠️ No se encontró la tabla de productos");
+        return;
+    }
+    
+    // Limpiar la tabla
+    tabla.innerHTML = "";
+    
+    // Si no hay productos, terminar
+    if (!productos || !Array.isArray(productos) || productos.length === 0) {
+        console.log("No hay productos para mostrar");
+        return;
+    }
+
+    // Crear filas para cada producto
+    productos.forEach(producto => {
+        const fila = document.createElement("tr");
+        fila.id = `producto-${producto.id}`;
+        
+        // Añadir celdas con verificación para prevenir errores "undefined"
+        fila.innerHTML = `
+            <td>${producto.codigo || ""}</td>
+            <td>${producto.codigo_tango || ""}</td>
+            <td>${producto.ins_mat_prod || ""}</td>
+            <td>${producto.proveedor || ""}</td>
+            <td>${producto.nro_lote || ""}</td>
+            <td>${producto.fecha_vto || ""}</td>
+            <td>${producto.temperatura || "-"}</td>
+            <td>${producto.cantidad_ingresada || ""}</td>
+            <td>${producto.nro_partida_asignada || ""}</td>
+            <td>
+                <button class="btn-eliminar" onclick="eliminarProducto(this)" data-id="${producto.id}">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </td>
+        `;
+        
+        tabla.appendChild(fila);
+    });
+
+    console.log("✅ Tabla actualizada con", productos.length, "productos");
+}
+
+// Función para mostrar los productos eliminados
+function mostrarProductosEliminados() {
+    let productosEliminados = [];
+    try {
+        const savedProducts = localStorage.getItem('productosEliminados');
+        if (savedProducts) {
+            productosEliminados = JSON.parse(savedProducts);
+        }
+    } catch (e) {
+        console.error("Error al recuperar productos eliminados:", e);
+    }
+    
+    if (!productosEliminados || productosEliminados.length === 0) {
+        alert("No hay productos eliminados hasta el momento");
+        return;
+    }
+    
+    let mensaje = "Productos eliminados:\n\n";
+    productosEliminados.forEach((producto, index) => {
+        mensaje += `${index + 1}. Código: ${producto.codigo || "N/A"}, Material: ${producto.ins_mat_prod || "N/A"}, Partida: ${producto.nro_partida_asignada || "N/A"}\n`;
+    });
+    
+    alert(mensaje);
+}
+
+// Función para limpiar la lista de productos eliminados
+function limpiarProductosEliminados() {
+    localStorage.removeItem('productosEliminados');
+    alert("Lista de productos eliminados limpiada");
+}

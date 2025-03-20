@@ -97,6 +97,9 @@ document.addEventListener("DOMContentLoaded", function () {
             const fila = document.createElement("tr");
             fila.innerHTML = `
                 <td>${producto.codigo}</td>
+                <td>${producto.codigo_tango}</td>
+                <td>${producto.ins_mat_prod}</td>
+                <td>${producto.proveedor}</td>
                 <td>${producto.nro_lote}</td>
                 <td>${producto.fecha_vto}</td>
                 <td>${producto.temperatura ? `${producto.temperatura}°C` : "-"}</td>
