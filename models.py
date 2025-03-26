@@ -26,8 +26,9 @@ class Usuario(db.Model, UserMixin):
 class ProductoBase(db.Model):
     __tablename__ = 'productos_base'
     codigo_base = db.Column(db.String(20), primary_key=True)  # Código de barras base
-    codigo_tango = db.Column(db.String(20),nullable=False)
+    codigo_tango = db.Column(db.String(20),nullable=False) # codigo del ins-mat-prod
     ins_mat_prod = db.Column(db.String(255), nullable=False)  # INS/MAT/PROD
+    codigo_proveedor = db.Column(db.String(255), nullable=True)  # codigo del Proveedor asociado
     proveedor = db.Column(db.String(255), nullable=False)  # Proveedor asociado
     cat_partida = db.Column(db.String(20), nullable=True) # categoria de la partida
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
@@ -54,6 +55,7 @@ class Producto(db.Model):
     codigo = db.Column(db.String(50), nullable=False)  
     codigo_tango = db.Column(db.String(20),nullable=False) #codigo_tango viene de productoBase
     ins_mat_prod = db.Column(db.String(255), nullable=False)  # INS/MAT/PROD viene de ProductoBase
+    codigo_proveedor = db.Column(db.String(20),nullable=True) # Se obtiene de ProductoBase
     proveedor = db.Column(db.String(255), nullable=False)  # Se obtiene de ProductoBase
     nro_lote = db.Column(db.String(50), nullable=False)
     fecha_vto = db.Column(db.Date, nullable=False)
@@ -75,7 +77,9 @@ class Recepcion(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     fecha = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     subproceso = db.Column(db.String(100), nullable=False)
+    codigo_proveedor = db.Column(db.String(255), nullable=False)
     proveedor = db.Column(db.String(255), nullable=False)
+    link_FR = db.Column(db.String(255), nullable=False)
 
      # ✅ Relación uno a muchos (una recepción tiene muchos productos)
     productos = db.relationship('Producto', backref='recepcion', lazy=True)

@@ -1,83 +1,121 @@
-from flask import Blueprint, request, jsonify, render_template
-from flask_login import login_required
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.common.keys import Keys
-import time
+import os
+import requests
+from datetime import datetime
+from dotenv import load_dotenv
+from flask import Blueprint, jsonify, request, render_template
+from models import Producto, Recepcion, db
+
+load_dotenv()  # Cargar variables del entorno desde .env
 
 automatizacion_bp = Blueprint('automatizacion', __name__, url_prefix='/automatizacion')
 
-# 📌 Ruta para la página de automatización
 @automatizacion_bp.route('/')
-@login_required
 def automatizacion():
     return render_template('automatizacion.html')
 
-# 📌 Ruta para iniciar Selenium y completar el formulario en Loyal
-@automatizacion_bp.route('/iniciarSelenium', methods=['POST'])
-@login_required
-def iniciar_selenium():
-    data = request.json
-    codigo_formulario = data.get("codigo")
+def crear_formulario_loyal(producto: dict, recepcion: dict, dry_run=False) -> dict:
+    url = os.getenv("LOYAL_API_BASE_URL", "https://felsan.loyal-solutions.com/rest/external/createForm")
 
-    if not codigo_formulario:
-        return jsonify({"error": "⚠️ Debe ingresar un código de formulario"}), 400
+    payload = {
+        "userName": os.getenv("LOYAL_API_USERNAME"),
+        "password": os.getenv("LOYAL_API_PASSWORD"),
+        "abstractFormId": int(os.getenv("LOYAL_ABSTRACT_FORM_ID", 7)),
+        "formTypeId": int(os.getenv("LOYAL_FORM_TYPE_ID", 66)),
+        "authorId": int(os.getenv("LOYAL_AUTHOR_ID", 999)),
+        "companyId": int(os.getenv("LOYAL_COMPANY_ID", 1)),
+        "title": f"{producto['ins_mat_prod']} - {recepcion['id']}",
+        "scopesCodes": [os.getenv("LOYAL_ISSUING_SCOPE_CODE", "RECEPCION")],
+        "issuingScopeCode": os.getenv("LOYAL_ISSUING_SCOPE_CODE", "RECEPCION"),
+        "key": os.getenv("LOYAL_KEY", "api@example.com"),
+    }
+
+    def format_fecha(value):
+        if isinstance(value, str):
+            return value
+        if isinstance(value, datetime):
+            return value.strftime("%Y-%m-%d")
+        return str(value)
+
+    referencias = [
+        {"referenceID": 158, "values": [format_fecha(recepcion["fecha"])]},
+        {"referenceID": 126, "values": [recepcion["subproceso"]]},
+        {"referenceID": 110, "values": [producto["codigo_proveedor"]]},
+        {"referenceID": 408, "values": [str(producto.get("temperatura", ""))]},
+        {"referenceID": 111, "values": [producto["codigo_tango"]]},
+        {"referenceID": 143, "values": [str(producto["cantidad_ingresada"])]},
+        {"referenceID": 147, "values": [producto["nro_partida_asignada"]]},
+        {"referenceID": 115, "values": [producto["nro_lote"]]},
+        {"referenceID": 136, "values": [format_fecha(producto["fecha_vto"])]},
+    ]
+
+    ref_padre_id = os.getenv("LOYAL_REFERENCE_FORM_PADRE_ID")
+    if ref_padre_id and recepcion.get("link_FR"):
+        referencias.append({
+            "referenceID": int(ref_padre_id),
+            "values": [recepcion["link_FR"]]
+        })
+
+    payload["reference"] = referencias
+
+    if dry_run:
+        print("🔍 [DRY RUN] Payload generado:", payload)
+        return {"success": True, "dry_run": True, "payload": payload}
 
     try:
-        # 🔹 Configurar Selenium con Chrome
-        options = webdriver.ChromeOptions()
-        driver = webdriver.Chrome(options=options)
+        response = requests.post(url, json=payload, timeout=10)
+        response.raise_for_status()
+        data = response.json()
 
-        # 🔹 Abrir Loyal (te deja en la pantalla de login)
-        driver.get("https://loyal-solutions.com/")
-        print("🔹 Inicia sesión en Loyal manualmente...")
-
-        # 🔹 Esperar a que el usuario inicie sesión (60 segundos máx.)
-        timeout = 60
-        start_time = time.time()
-
-        while time.time() - start_time < timeout:
-            try:
-                # Verificar si ya está logueado (buscando un elemento de la página principal)
-                if driver.find_element(By.XPATH, "//a[contains(text(),'QMS')]"):
-                    print("✅ Sesión iniciada en Loyal. Continuando automatización...")
-                    break
-            except:
-                time.sleep(2)  # Esperar un poco antes de volver a verificar
-        
-        # Si no se detectó el login, cancelar
+        if data.get("success"):
+            print("✅ Formulario creado en Loyal:", data)
         else:
-            driver.quit()
-            return jsonify({"error": "⚠️ No se detectó el inicio de sesión en Loyal"}), 400
+            print("⚠️ Error desde Loyal:", data)
 
-        # 🔹 Ir a la sección de QMS
-        driver.find_element(By.XPATH, "//a[contains(text(),'QMS')]").click()
-        time.sleep(3)
+        return data
 
-        # 🔹 Buscar el formulario ingresado
-        search_box = driver.find_element(By.XPATH, "//input[@placeholder='Buscar Formulario']")
-        search_box.send_keys(codigo_formulario)
-        search_box.send_keys(Keys.RETURN)
-        time.sleep(3)
+    except requests.RequestException as e:
+        print("❌ Error al conectar con API Loyal:", e)
+        return {"success": False, "error": str(e)}
 
-        # 🔹 Ingresar al formulario
-        driver.find_element(By.XPATH, f"//td[contains(text(), '{codigo_formulario}')]").click()
-        time.sleep(3)
+@automatizacion_bp.route('/cargarALoyal/<int:recepcion_id>', methods=['POST'])
+def cargar_recepcion_a_loyal(recepcion_id):
+    recepcion = Recepcion.query.get(recepcion_id)
+    if not recepcion:
+        return jsonify({"success": False, "error": "⚠️ Recepción no encontrada"}), 404
 
-        # 🔹 Completar la sección "Carga de Mercadería Recibida"
-        driver.find_element(By.XPATH, "//button[contains(text(),'Ingresar')]").click()
-        time.sleep(2)
+    productos = Producto.query.filter_by(recepcion_id=recepcion.id).all()
+    if not productos:
+        return jsonify({"success": False, "error": "⚠️ No hay productos en esta recepción"}), 400
 
-        # 🔹 Completar campos (Ejemplo: Subprocesos)
-        driver.find_element(By.XPATH, "//input[@placeholder='Subprocesos']").send_keys("Ejemplo de subproceso")
+    errores = []
+    resultados = []
+    dry_run = request.args.get("dry_run", "false").lower() == "true"
 
-        # 🔹 Guardar y salir
-        driver.find_element(By.XPATH, "//button[contains(text(),'Guardar')]").click()
-        time.sleep(3)
+    for p in productos:
+        producto_dict = {
+            "codigo_proveedor": p.codigo_proveedor,
+            "codigo_tango": p.codigo_tango,
+            "ins_mat_prod": p.ins_mat_prod,
+            "temperatura": p.temperatura,
+            "cantidad_ingresada": p.cantidad_ingresada,
+            "nro_partida_asignada": p.nro_partida_asignada,
+            "nro_lote": p.nro_lote,
+            "fecha_vto": p.fecha_vto
+        }
 
-        driver.quit()
-        return jsonify({"mensaje": "✅ Formulario completado exitosamente en Loyal."})
+        recepcion_dict = {
+            "id": recepcion.id,
+            "fecha": recepcion.fecha,
+            "subproceso": recepcion.subproceso,
+            "proveedor": recepcion.proveedor,
+            "link_FR": recepcion.link_FR
+        }
 
-    except Exception as e:
-        print("❌ Error en Selenium:", e)
-        return jsonify({"error": "❌ Error al completar el formulario"}), 500
+        resultado = crear_formulario_loyal(producto_dict, recepcion_dict, dry_run=dry_run)
+
+        if not resultado.get("success"):
+            errores.append(resultado)
+        resultados.append(resultado)
+
+    return jsonify({"success": True, "dry_run": dry_run, "resultados": resultados, "errores": errores})
+

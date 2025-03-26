@@ -80,6 +80,14 @@
                 <input type="text" id="proveedor" list="proveedor-sugerencias" placeholder="Ingrese proveedor" required>
                 <datalist id="proveedor-sugerencias"></datalist>
             </div>
+            <div class="input-group">
+                <label for="codigo_proveedor">Código Proveedor</label>
+                <input type="text" id="codigo_proveedor">
+            </div>
+            <div class="input-group">
+                <label for="link_FR">Link al FR-LOYAL</label>
+                <input type="text" id="link_FR" placeholder="https://felsan.loyal-solutions.com/#/!/documents/XXXXX/general">
+            </div>
             <div class="btn-group">
                 <button onclick="crearRecepcion()"><i class="fas fa-plus"></i> Crear Recepción</button>
             </div>
@@ -107,6 +115,10 @@
         <div class="input-group">
             <label for="ins-mat-prod">INS/MAT/PROD</label>
             <input type="text" id="ins-mat-prod" disabled>
+        </div>
+        <div class="input-group">
+            <label for="codigo_proveedor-producto">Código Proveedor</label>
+            <input type="text" id="codigo_proveedor-producto" disabled>
         </div>
         <div class="input-group">
             <label for="proveedor-producto">Proveedor</label>
@@ -150,6 +162,7 @@
                     <th>Código Escaneado</th>
                     <th>Código Tango</th>
                     <th>INS/MAT/PROD</th>
+                    <th>Código Proveedor</th>
                     <th>Proveedor</th>
                     <th>N° Lote</th>
                     <th>Fecha Vto</th>

@@ -25,6 +25,7 @@ def obtener_productosBase():
         "codigo_tango": p.codigo_tango,
         "cat_partida": p.cat_partida,
         "ins_mat_prod": p.ins_mat_prod,
+        "codigo_proveedor": p.codigo_proveedor,
         "proveedor": p.proveedor
     } for p in productos]
 
@@ -46,6 +47,7 @@ def detalle_productoBase(codigo_base):
         "codigo_tango": producto.codigo_tango,
         "cat_partida": producto.cat_partida,
         "ins_mat_prod": producto.ins_mat_prod,
+        "codigo_proveedor": producto.codigo_proveedor,
         "proveedor": producto.proveedor
     })
 
@@ -61,9 +63,10 @@ def agregar_productoBase():
     codigo_tango = data.get("codigo_tango")
     cat_partida = data.get("cat_partida")
     ins_mat_prod = data.get("ins_mat_prod")
+    codigo_proveedor = data.get("codigo_proveedor")
     proveedor = data.get("proveedor")
 
-    if not codigo_base or not codigo_tango or not cat_partida or not ins_mat_prod or not proveedor:
+    if not codigo_base or not codigo_tango or not cat_partida or not ins_mat_prod or not codigo_proveedor or not proveedor:
         return jsonify({"error": "⚠️ Todos los campos son obligatorios"}), 400
 
     # Verificar si el producto ya existe
@@ -77,6 +80,7 @@ def agregar_productoBase():
         codigo_tango=codigo_tango,
         cat_partida=cat_partida,
         ins_mat_prod=ins_mat_prod,
+        codigo_proveedor=codigo_proveedor,
         proveedor=proveedor
     )
     db.session.add(nuevo_producto)
@@ -99,6 +103,7 @@ def modificar_productoBase(codigo_base):
     producto.codigo_tango = data.get("codigo_tango", producto.codigo_tango)
     producto.cat_partida = data.get("cat_partida", producto.cat_partida)
     producto.ins_mat_prod = data.get("ins_mat_prod", producto.ins_mat_prod)
+    producto.codigo_proveedor = data.get("codigo_proveedor", producto.codigo_proveedor)
     producto.proveedor = data.get("proveedor", producto.proveedor)
     db.session.commit()
 

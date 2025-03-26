@@ -1,38 +1,4 @@
-document.addEventListener("DOMContentLoaded", function () {
-
-    // 📌 Función para iniciar Selenium en el backend
-    window.iniciarSelenium = async function () {
-        const codigoRecepcion = document.getElementById("id-recepcion").value.trim();
-        const mensajeCarga = document.getElementById("mensaje-carga");
-
-        if (!codigoRecepcion) {
-            mensajeCarga.textContent = "⚠️ Debe ingresar un ID de recepción.";
-            mensajeCarga.style.color = "red";
-            return;
-        }
-
-        try {
-            const response = await fetch("/automatizacion/iniciarSelenium", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ codigo: codigoRecepcion })
-            });
-
-            const data = await response.json();
-
-            if (response.ok) {
-                mensajeCarga.textContent = data.mensaje;
-                mensajeCarga.style.color = "green";
-            } else {
-                mensajeCarga.textContent = data.error || "❌ Error al iniciar la automatización.";
-                mensajeCarga.style.color = "red";
-            }
-        } catch (error) {
-            console.error("❌ Error en la automatización:", error);
-            mensajeCarga.textContent = "❌ No se pudo conectar con el servidor.";
-            mensajeCarga.style.color = "red";
-        }
-    };
+/*document.addEventListener("DOMContentLoaded", function () {
 
     // 📌 Función para cargar la recepción y mostrar productos en la tabla
     window.cargarRecepcion = async function () {
@@ -45,7 +11,7 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
-        console.log(`🔍 Solicitando recepción con ID: ${idRecepcion}`); // Depuración
+        console.log('🔍 Solicitando recepción con ID: ${idRecepcion}'); // Depuración
 
         try {
             const response = await fetch(`/recepcion/${idRecepcion}`, {
@@ -99,17 +65,101 @@ document.addEventListener("DOMContentLoaded", function () {
                 <td>${producto.codigo}</td>
                 <td>${producto.codigo_tango}</td>
                 <td>${producto.ins_mat_prod}</td>
+                <td>${producto.codigo_proveedor}</td>
                 <td>${producto.proveedor}</td>
                 <td>${producto.nro_lote}</td>
                 <td>${producto.fecha_vto}</td>
-                <td>${producto.temperatura ? `${producto.temperatura}°C` : "-"}</td>
+                <td>${producto.temperatura}</td>
                 <td>${producto.cantidad_ingresada}</td>
                 <td>${producto.nro_partida_asignada}</td>
-            `;
+            ;`
             tablaBody.appendChild(fila);
         });
 
         console.log("✅ Tabla de recepción actualizada correctamente.");
     }
 
-}); // 🔹 **Se agrega esta llave de cierre que estaba faltando**
+});*/ 
+
+async function cargarYMostrarRecepcion() {
+    const idRecepcion = document.getElementById("id-recepcion").value.trim();
+    const mensaje = document.getElementById("mensaje-carga");
+    const tablaProductos = document.querySelector("#tabla-recepcion tbody");
+    const tablaDatos = document.querySelector("#fila-datos-recepcion tbody") || document.querySelector("#fila-datos-recepcion");
+
+    if (!idRecepcion) {
+        mensaje.textContent = "⚠️ Debe ingresar un ID de recepción.";
+        mensaje.style.color = "red";
+        return;
+    }
+
+    mensaje.textContent = "⏳ Cargando recepción...";
+
+    try {
+        const response = await fetch(`/recepcion/${idRecepcion}`);
+        const data = await response.json();
+
+        console.log("📌 Respuesta de la API:", data);
+
+        if (response.ok) {
+            mensaje.textContent = "✅ Recepción cargada correctamente";
+            mensaje.style.color = "green";
+
+            // 🧾 Mostrar datos de la recepción
+            tablaDatos.innerHTML = "";
+            const fila = document.createElement("tr");
+            fila.innerHTML = `
+                <td>${data.id}</td>
+                <td>${new Date(data.fecha).toLocaleDateString()}</td>
+                <td>${data.subproceso}</td>
+                <td>${data.codigo_proveedor}</td>
+                <td>${data.proveedor}</td>
+                <td>
+                    ${data.link_FR ? `<a href="${data.link_FR}" target="_blank">${data.link_FR}</a>
+                    <button onclick="copiarTexto('${data.link_FR}')" class="btn-clipboard"><i class="fa-solid fa-clipboard"></i></button>` : 'No disponible'}
+                </td>
+            `;
+            tablaDatos.appendChild(fila);
+
+            // 🧪 Mostrar productos
+            if (!Array.isArray(data.productos) || data.productos.length === 0) {
+                mensaje.textContent = "⚠️ La recepción no tiene productos asociados.";
+                mensaje.style.color = "orange";
+                return;
+            }
+
+            tablaProductos.innerHTML = "";
+            data.productos.forEach(producto => {
+                const fila = document.createElement("tr");
+                fila.innerHTML = `
+                    <td>${producto.codigo}</td>
+                    <td>${producto.codigo_tango}</td>
+                    <td>${producto.ins_mat_prod}</td>
+                    <td>${producto.codigo_proveedor}</td>
+                    <td>${producto.proveedor}</td>
+                    <td>${producto.nro_lote}</td>
+                    <td>${producto.fecha_vto}</td>
+                    <td>${producto.temperatura ? producto.temperatura + "°C" : "-"}</td>
+                    <td>${producto.cantidad_ingresada}</td>
+                    <td>${producto.nro_partida_asignada}</td>
+                `;
+                tablaProductos.appendChild(fila);
+            });
+
+        } else {
+            mensaje.textContent = data.error || "❌ Error al cargar la recepción.";
+            mensaje.style.color = "red";
+        }
+
+    } catch (error) {
+        console.error("❌ Error al cargar la recepción:", error);
+        mensaje.textContent = "❌ No se pudo conectar con el servidor.";
+        mensaje.style.color = "red";
+    }
+}
+
+function copiarTexto(texto) {
+    navigator.clipboard.writeText(texto).then(() => {
+        alert("✅ Copiado al portapapeles");
+    });
+}

@@ -1,4 +1,29 @@
-// 📌 Abrir el modal modificar partidas manualmente
+
+function formatearFecha(fechaISO) {
+    if (!fechaISO) return "Fecha no disponible";
+
+    try {
+        // Convertir a objeto Date interpretado como UTC
+        const fechaUTC = new Date(fechaISO + 'Z'); // Agrega 'Z' para que lo interprete como UTC
+
+        // Formatear con zona horaria de Buenos Aires
+        return fechaUTC.toLocaleString("es-AR", {
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: false,
+            timeZone: "America/Argentina/Buenos_Aires"
+        });
+    } catch (error) {
+        console.error("⚠️ Error al formatear fecha:", error);
+        return "Fecha inválida";
+    }
+}
+
+
+//📌 Abrir el modal modificar partidas manualmente
 document.getElementById("btn-abrir-modal").addEventListener("click", function () {
     document.getElementById("modalPartida").style.display = "block";
 });
@@ -123,6 +148,7 @@ async function buscarProductoBase(codigoBase) {
 
         if (response.ok) {
             document.getElementById("ins-mat-prod").value = data.ins_mat_prod;
+            document.getElementById("codigo_proveedor-producto").value = data.ins_mat_prod;
             document.getElementById("proveedor-producto").value = data.proveedor;
             document.getElementById("codigo_tango").value = data.codigo_tango;
         } else {
@@ -139,6 +165,7 @@ function limpiarFormulario() {
         "codigo",
         "codigo_tango",
         "ins-mat-prod",
+        "codigo_proveedor-producto",
         "proveedor-producto",
         "nro_lote",
         "fecha_vto",
@@ -215,6 +242,7 @@ async function escanearProducto() {
                 <td>${codigo}</td>
                 <td>${data.codigo_tango}</td>
                 <td>${data.ins_mat_prod}</td>
+                <td>${data.codigo_proveedor}</td>
                 <td>${data.proveedor}</td>
                 <td>${nroLote}</td>
                 <td>${fechaVto}</td>
@@ -280,10 +308,12 @@ document.addEventListener("DOMContentLoaded", function () {
 // 📌 Función para crear una recepción y asociarle productos
 async function crearRecepcion() {
     const subproceso = document.getElementById("subproceso").value;
+    const codigo_proveedor = document.getElementById("codigo_proveedor").value;
     const proveedor = document.getElementById("proveedor").value;
+    const link_FR = document.getElementById("link_FR").value;
     const mensaje = document.getElementById("recepcion-message");
 
-    if (!subproceso || !proveedor) {
+    if (!subproceso || !proveedor || !codigo_proveedor || !link_FR) {
         mensaje.textContent = "⚠️ Complete todos los campos.";
         mensaje.style.color = "red";
         return;
@@ -301,7 +331,7 @@ async function crearRecepcion() {
         const response = await fetch("/crear-recepcion", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ subproceso, proveedor })
+            body: JSON.stringify({ subproceso, codigo_proveedor, proveedor, link_FR})
         });
 
         const data = await response.json();
@@ -348,14 +378,19 @@ async function cargarRecepciones() {
             const fila = document.createElement("tr");
             fila.innerHTML = `
                 <td>${recepcion.id}</td>
-                <td>${recepcion.fecha}</td>
+                <td>${formatearFecha(recepcion.fecha)}</td>
                 <td>${recepcion.subproceso}</td>
+                <td>${recepcion.codigo_proveedor}</td>
                 <td>${recepcion.proveedor}</td>
+                <td>${recepcion.link_FR}</td>
                 <td>${recepcion.productos.length} producto(s)</td>
                 <td>
                     <button class="btn-detalles" onclick="toggleDetalles(${recepcion.id})">
-                        <i class="fas fa-eye"></i> Ver Detalles
+                        <i class="fas fa-eye"></i>
                     </button>
+                      <button class="btn-editarRecepcion" onclick="window.location.href='/recepcion/editar/${recepcion.id}'">
+            <i class="fas fa-edit"></i>
+        </button>
                 </td>
             `;
 
@@ -371,6 +406,7 @@ async function cargarRecepciones() {
                                 <th>Código</th>
                                 <th>Código Tango</th>
                                 <th>INS/MAT/PROD</th>
+                                <th>Código Proveedor</th>
                                 <th>Proveedor</th>
                                 <th>Nro Lote</th>
                                 <th>Fecha Vto</th>
@@ -379,20 +415,24 @@ async function cargarRecepciones() {
                                 <th>Nro Partida</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            ${recepcion.productos.map(p => `
-                                <tr>
-                                    <td>${p.codigo}</td>
-                                    <td>${p.codigo_tango}</td>
-                                    <td>${p.ins_mat_prod}</td>
-                                    <td>${p.proveedor}</td>
-                                    <td>${p.nro_lote}</td>
-                                    <td>${p.fecha_vto}</td>
-                                    <td>${p.temperatura ? `${p.temperatura}°C` : "-"}</td>
-                                    <td>${p.cantidad_ingresada}</td>
-                                    <td>${p.nro_partida_asignada}</td>
-                                </tr>
-                            `).join('')}
+                            <tbody>
+                            ${recepcion.productos.length > 0 
+                                ? recepcion.productos.map(p => `
+                                    <tr>
+                                        <td>${p.codigo}</td>
+                                        <td>${p.codigo_tango}</td>
+                                        <td>${p.ins_mat_prod}</td>
+                                        <td>${p.codigo_proveedor}</td>
+                                        <td>${p.proveedor}</td>
+                                        <td>${p.nro_lote}</td>
+                                        <td>${p.fecha_vto}</td>
+                                        <td>${p.temperatura ? `${p.temperatura}°C` : "-"}</td>
+                                        <td>${p.cantidad_ingresada}</td>
+                                        <td>${p.nro_partida_asignada}</td>
+                                    </tr>
+                                `).join('')
+                                : `<tr><td colspan="9" style="text-align: center; color: #888;">NO HAY PRODUCTOS ASOCIADOS</td></tr>`
+                            }
                         </tbody>
                     </table>
                 </td>
@@ -424,6 +464,7 @@ async function cargarRecepcion() {
     const recepcionId = document.getElementById("id-recepcion").value.trim();
     const mensaje = document.getElementById("mensaje-carga");
     const tablaRecepcion = document.querySelector("#tabla-recepcion tbody");
+   
 
     if (!recepcionId) {
         mensaje.textContent = "⚠️ Ingrese un ID de recepción válido.";
@@ -444,6 +485,7 @@ async function cargarRecepcion() {
             mensaje.style.color = "green";
             mensaje.style.fontSize = "12px";
 
+
             if (!Array.isArray(data.productos) || data.productos.length === 0) {
                 console.warn("⚠️ La recepción no tiene productos asociados.");
                 mensaje.textContent = "⚠️ La recepción no tiene productos asociados.";
@@ -451,9 +493,10 @@ async function cargarRecepcion() {
                 return;
             }
 
+
             // Limpiar la tabla antes de agregar los nuevos datos
             tablaRecepcion.innerHTML = "";
-
+            
             // Llenar la tabla con los productos de la recepción
             data.productos.forEach(producto => {
                 const fila = document.createElement("tr");
@@ -461,6 +504,7 @@ async function cargarRecepcion() {
                     <td>${producto.codigo}</td>
                     <td>${producto.codigo_tango}</td>
                     <td>${producto.ins_mat_prod}</td>
+                    <td>${producto.codigo_proveedor}</td>
                     <td>${producto.proveedor}</td>
                     <td>${producto.nro_lote}</td>
                     <td>${producto.fecha_vto}</td>
@@ -488,18 +532,26 @@ async function cargarRecepcion() {
 async function filtrarRecepciones() {
     
     const proveedorFiltro = document.getElementById("filtro-proveedor").value.trim().toLowerCase();
+    const fechaDesde = document.getElementById("fecha-desde").value;
+    const fechaHasta = document.getElementById("fecha-hasta").value;    
     const tablaRecepciones = document.querySelector("#tabla-recepciones tbody");
 
     try {
         const response = await fetch("/recepciones");
         const data = await response.json();
 
-        // Filtrar las recepciones según lo que se escribió en el input de proveedor
-        const recepcionesFiltradas = data.filter(recepcion => {
-            return (
-                (proveedorFiltro === "" || recepcion.proveedor.toLowerCase().includes(proveedorFiltro))
-            );
-        });
+            // Filtrar las recepciones por proveedor y por fecha
+            const recepcionesFiltradas = data.filter(recepcion => {
+                const proveedorMatch = proveedorFiltro === "" || recepcion.proveedor.toLowerCase().includes(proveedorFiltro);
+            
+                // Transformar la fecha de la recepción a solo "YYYY-MM-DD"
+                const fechaRecepcion = recepcion.fecha.split("T")[0];
+            
+                const desdeMatch = !fechaDesde || fechaRecepcion >= fechaDesde;
+                const hastaMatch = !fechaHasta || fechaRecepcion <= fechaHasta;
+            
+                return proveedorMatch && desdeMatch && hastaMatch;
+            });
 
         // Limpiar la tabla antes de agregar los datos filtrados
         tablaRecepciones.innerHTML = "";
@@ -509,9 +561,11 @@ async function filtrarRecepciones() {
             const fila = document.createElement("tr");
             fila.innerHTML = `
                 <td>${recepcion.id}</td>
-                <td>${recepcion.fecha}</td>
+                <td>${formatearFecha(recepcion.fecha)}</td>
                 <td>${recepcion.subproceso}</td>
+                <td>${recepcion.codigo_proveedor}</td>
                 <td>${recepcion.proveedor}</td>
+                <td>${recepcion.link_FR}</td>
                 <td>${recepcion.productos.length} producto(s)</td>
                 <td>
                     <button class="btn-detalles" onclick="toggleDetalles(${recepcion.id})">
@@ -535,6 +589,7 @@ async function filtrarRecepciones() {
                                 <th>Código</th>
                                 <th>Código Tango</th>
                                 <th>INS/MAT/PROD</th>
+                                <th>Código Proveedor</th>
                                 <th>Proveedor</th>
                                 <th>Nro Lote</th>
                                 <th>Fecha Vto</th>
@@ -543,20 +598,24 @@ async function filtrarRecepciones() {
                                 <th>Nro Partida</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            ${recepcion.productos.map(p => `
-                                <tr>
-                                    <td>${p.codigo}</td>
-                                    <td>${p.codigo_tango}</td>
-                                    <td>${p.ins_mat_prod}</td>
-                                    <td>${p.proveedor}</td>
-                                    <td>${p.nro_lote}</td>
-                                    <td>${p.fecha_vto}</td>
-                                    <td>${p.temperatura ? `${p.temperatura}°C` : "-"}</td>
-                                    <td>${p.cantidad_ingresada}</td>
-                                    <td>${p.nro_partida_asignada}</td>
-                                </tr>
-                            `).join('')}
+                                            <tbody>
+                            ${recepcion.productos.length > 0 
+                                ? recepcion.productos.map(p => `
+                                    <tr>
+                                        <td>${p.codigo}</td>
+                                        <td>${p.codigo_tango}</td>
+                                        <td>${p.ins_mat_prod}</td>
+                                        <td>${p.codigo_proveedor}</td>
+                                        <td>${p.proveedor}</td>
+                                        <td>${p.nro_lote}</td>
+                                        <td>${p.fecha_vto}</td>
+                                        <td>${p.temperatura ? `${p.temperatura}°C` : "-"}</td>
+                                        <td>${p.cantidad_ingresada}</td>
+                                        <td>${p.nro_partida_asignada}</td>
+                                    </tr>
+                                `).join('')
+                                : `<tr><td colspan="9" style="text-align: center; color: #888;">NO HAY PRODUCTOS ASOCIADOS</td></tr>`
+                            }
                         </tbody>
                     </table>
                 </td>
@@ -574,7 +633,16 @@ async function filtrarRecepciones() {
 // 📌 Detectar cambios en el input y filtrar automáticamente mientras se escribe
 document.getElementById("filtro-proveedor").addEventListener("input", filtrarRecepciones);
 
+//funcion para resetear filtros y cargar todas las recepciones
+function resetFiltros() {
+    // Limpiar inputs de filtro
+    document.getElementById("filtro-proveedor").value = "";
+    document.getElementById("fecha-desde").value = "";
+    document.getElementById("fecha-hasta").value = "";
 
+    // Cargar todas las recepciones sin filtros
+    cargarRecepciones();
+}
 async function cargarProveedores() {
     const filtroProveedor = document.getElementById("filtro-proveedor");
 
@@ -639,7 +707,9 @@ async function cargarRecepcion(recepcionId) {
         if (response.ok) {
             document.getElementById("fecha-recepcion").textContent = data.fecha;
             document.getElementById("subproceso-recepcion").textContent = data.subproceso;
+            document.getElementById("codigo_proveedor-recepcion").textContent = data.codigo_proveedor;
             document.getElementById("proveedor-recepcion").textContent = data.proveedor;
+            document.getElementById("link_FR").textContent = data.link_FR;
 
             // Cargar los productos en la tabla
             const tabla = document.querySelector("#tabla-productos tbody");
@@ -651,6 +721,7 @@ async function cargarRecepcion(recepcionId) {
                     <td>${producto.codigo}</td>
                     <td>${producto.codigo_tango}</td>
                     <td>${producto.ins_mat_prod}</td>
+                    <td>${producto.codigo_proveedor}</td>
                     <td>${producto.proveedor}</td>
                     <td>${producto.nro_lote}</td>
                     <td>${producto.fecha_vto}</td>
@@ -766,6 +837,7 @@ async function agregarProducto() {
                 <td>${data.codigo}</td>
                 <td>${data.codigo_tango}</td>
                 <td>${data.ins_mat_prod}</td>
+                <td>${data.codigo_proveedor}</td>
                 <td>${data.proveedor}</td>
                 <td>${data.nro_lote}</td>
                 <td>${data.fecha_vto}</td>
@@ -794,90 +866,6 @@ async function agregarProducto() {
 function editarProducto(productoId) {
     alert("Función de edición en desarrollo. Próximamente podrás modificar los datos de un producto.");
 }
-
-/*
-//Funcion para eliminar un producto de una recepcion en edicion
-async function eliminarProducto(boton) {
-    const productoId = boton.dataset.id;
-
-     
-    if (!productoId) {
-        console.error("⚠️ No se encontró el ID del producto.");
-        return;
-    }
-
-    if (!confirm("⚠️ Si eliminas este producto, la partida quedará libre. ¿Deseas continuar?")) {
-        return;
-    }
-
-    try {
-        const response = await fetch(`/eliminar-producto/${productoId}`, {
-            method: "DELETE",
-            headers: { "Content-Type": "application/json" }
-            
-        });
-
-        const data = await response.json();
-        
-
-          // 📌 Obtener el ID de la recepción desde el HTML
-          const recepcionId = document.getElementById("recepcion-id").value;
-
-          // 📌 Volver a llamar a la API para obtener los productos actualizados
-          const productosResponse = await fetch(`/recepcion/${recepcionId}`);
-          const productosData = await productosResponse.json();
-
-          if (productosResponse.ok) {
-
-              actualizarTablaProductos(productosData.productos); // 🔄 Actualiza la tabla de productos
-
-          } else {
-              console.error("⚠️ Error al obtener productos actualizados:", productosData.error);
-          }
-
-          
-        if (response.ok) {
-
-            alert(data.mensaje)   
-              
-
-        } else {
-            alert(data.error || "❌ Error al eliminar producto.");
-        }
-    } catch (error) {
-        console.error("❌ Error al eliminar producto:", error);
-    }
-}
-
-
-// 📌 Función para actualizar solo la tabla de productos en `recepcion_editar.html`
-function actualizarTablaProductos(productos) {
-    const tabla = document.querySelector("#tabla-productos tbody");
-    tabla.innerHTML = ""; // 🔄 Limpiar la tabla antes de agregar los datos nuevos
-
-    productos.forEach(producto => {
-        let fila = document.createElement("tr");
-        fila.id = `producto-${producto.id}`;
-        fila.innerHTML = `
-            <td>${producto.codigo}</td>
-            <td>${producto.codigo_tango}</td>
-            <td>${producto.ins_mat_prod}</td>
-            <td>${producto.proveedor}</td>
-            <td>${producto.nro_lote}</td>
-            <td>${producto.fecha_vto}</td>
-            <td>${producto.temperatura || "-"}</td>
-            <td>${producto.cantidad_ingresada}</td>
-            <td>${producto.nro_partida_asignada}</td>
-            <td>
-                <button class="btn-eliminar" onclick="eliminarProducto(this)" data-id="${producto.id}">
-            </td>
-        `;
-        tabla.appendChild(fila);
-        
-    });
-
-    console.log("✅ Tabla de productos actualizada correctamente.");
-}*/ 
 
 // Función para eliminar un producto
 async function eliminarProducto(boton) {
@@ -986,6 +974,7 @@ function actualizarTablaProductos(productos) {
             <td>${producto.codigo || ""}</td>
             <td>${producto.codigo_tango || ""}</td>
             <td>${producto.ins_mat_prod || ""}</td>
+            <td>${producto.codigo_proveedor || ""}</td>
             <td>${producto.proveedor || ""}</td>
             <td>${producto.nro_lote || ""}</td>
             <td>${producto.fecha_vto || ""}</td>

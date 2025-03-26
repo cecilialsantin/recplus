@@ -11,16 +11,27 @@
 <!-- 🔹 Filtros para búsqueda rápida -->
 <div class="filtros-container">
 
-    <input type="text" id="filtro-proveedor" class="filtro-select" placeholder="Ingrese proveedor...">
+   
+    <div class="filtros-fecha-proveedor">
+        <label for="filtro-proveedor">Proveedor</label>
+        <input type="text" id="filtro-proveedor" class="filtro-select" placeholder="Ingrese proveedor...">
 
+        <label for="fecha-desde">Desde:</label>
+        <input type="date" id="fecha-desde" class="filtro-select">
+    
+        <label for="fecha-hasta">Hasta:</label>
+        <input type="date" id="fecha-hasta" class="filtro-select">
 
-    <button class="btn-filtrar" onclick="filtrarRecepciones()">
-        <i class="fas fa-filter"></i> Filtrar
-    </button>
+        <button class="btn-filtrar" onclick="filtrarRecepciones()">
+            <i class="fas fa-filter"></i>
+        </button>
+    
+        <button class="btn-reset" onclick="resetFiltros()">
+            <i class="fas fa-redo"></i>
+        </button>
 
-    <button class="btn-reset" onclick="cargarRecepciones()">
-        <i class="fas fa-redo"></i> Reset
-    </button>
+    </div>
+
 </div>
 
 <!-- Tabla de Recepciones -->
@@ -31,7 +42,9 @@
                 <th>ID</th>
                 <th>Fecha</th>
                 <th>Subproceso</th>
+                <th>Codigo Proveedor</th>
                 <th>Proveedor</th>
+                <th>Link_FR</th>
                 <th>Productos Asociados</th>
                 <th>Detalles</th>
             </tr>

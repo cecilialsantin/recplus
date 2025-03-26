@@ -8,6 +8,15 @@
         <i class="fa-solid fa-plus"></i> Agregar Producto
     </button>
 </div>
+<div class="botones-lista-eliminados">
+    <button class="btn-listaprodeliminados" onclick="mostrarProductosEliminados()">
+        <i class="fas fa-eye"></i> Ultimos Eliminados
+    </button>
+    
+    <button class="btn-borrarlistaeliminados" onclick="limpiarProductosEliminados()">
+        <i class="fas fa-trash"></i> Vaciar Lista Eliminados
+    </button>
+</div>
 
 <div class="table-container">
     <h3>Detalles de la Recepción</h3>
@@ -17,7 +26,9 @@
                 <th>ID</th>
                 <th>Fecha</th>
                 <th>Subproceso</th>
+                <th>Codigo Proveedor</th>
                 <th>Proveedor</th>
+                <th>Link_FR</th>
             </tr>
         </thead>
         <tbody>
@@ -25,7 +36,9 @@
                 <td>{{ recepcion_id }}</td>
                 <td>{{ fecha }}</td>
                 <td>{{ subproceso }}</td>
+                <td>{{ codigo_proveedor }}</td>
                 <td>{{ proveedor }}</td>
+                <td>{{ Link_FR }}</td>
             </tr>
         </tbody>
     </table>
@@ -39,6 +52,7 @@
                 <th>Código</th>
                 <th>Código Tango</th>
                 <th>INS/MAT/PROD</th>
+                <th>Código Proveedor</th>
                 <th>Proveedor</th>
                 <th>Nro Lote</th>
                 <th>Fecha Vto</th>
@@ -54,6 +68,7 @@
                 <td>{{ producto.codigo }}</td>
                 <td>{{ producto.codigo_tango }}</td>
                 <td>{{ producto.ins_mat_prod }}</td>
+                <td>{{ producto.codigo_proveedor }}</td>
                 <td>{{ producto.proveedor }}</td>
                 <td>{{ producto.nro_lote }}</td>
                 <td>{{ producto.fecha_vto }}</td>
@@ -94,6 +109,10 @@
             <input type="text" id="ins-mat-prod" disabled>
         </div>
         <div class="input-group">
+            <label for="codigo_proveedor-producto">Código Proveedor</label>
+            <input type="text" id="codigo_proveedor-producto" disabled>
+        </div>
+        <div class="input-group">
             <label for="proveedor-producto">Proveedor</label>
             <input type="text" id="proveedor-producto" disabled>
         </div>
@@ -120,15 +139,7 @@
     </div>
 </div>
 
-<div class="botones-lista-eliminados">
-    <button class="btn-listaprodeliminados" onclick="mostrarProductosEliminados()">
-        <i class="fas fa-eye"></i> Ultimos Eliminados
-    </button>
-    
-    <button class="btn-borrarlistaeliminados" onclick="limpiarProductosEliminados()">
-        <i class="fas fa-trash"></i> Vaciar Lista Eliminados
-    </button>
-</div>
+
 
 <!-- Botón de Volver -->
 <button class="btn-volver" onclick="window.location.href='/home'">

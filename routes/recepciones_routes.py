@@ -32,6 +32,7 @@ def editar_recepcion(recepcion_id):
         fecha=recepcion.fecha,
         subproceso=recepcion.subproceso,
         proveedor=recepcion.proveedor,
+        link_FR=recepcion.link_FR,
         productos=productos_asociados  # Pasamos los productos a la plantilla
     )
 
@@ -122,6 +123,7 @@ def obtener_producto_base(codigo):
         "codigo_tango": producto_base.codigo_tango,
         "cat_partida": producto_base.cat_partida,
         "ins_mat_prod": producto_base.ins_mat_prod,
+        "codigo_proveedor": producto_base.codigo_proveedor,
         "proveedor": producto_base.proveedor
     })
 
@@ -195,6 +197,7 @@ def escanear():
         codigo=codigo,
         codigo_tango=producto_base.codigo_tango,
         ins_mat_prod=producto_base.ins_mat_prod,
+        codigo_proveedor=producto_base.codigo_proveedor,
         proveedor=producto_base.proveedor,
         nro_lote=data.get("nro_lote"),
         fecha_vto=data.get("fecha_vto"),
@@ -214,6 +217,7 @@ def escanear():
         "codigo": nuevo_producto.codigo,
         "codigo_tango": nuevo_producto.codigo_tango,
         "ins_mat_prod": nuevo_producto.ins_mat_prod,
+        "codigo_proveedor": nuevo_producto.codigo_proveedor,
         "proveedor": nuevo_producto.proveedor,
         "nro_lote": nuevo_producto.nro_lote,
         "fecha_vto": nuevo_producto.fecha_vto,
@@ -232,6 +236,7 @@ def obtener_productos():
         "codigo": p.codigo,
         "codigo_tango": p.codigo_tango,
         "ins_mat_prod": p.ins_mat_prod,
+        "codigo_proveedor": p.codigo_proveedor,
         "proveedor": p.proveedor,
         "nro_lote": p.nro_lote,
         "fecha_vto": str(p.fecha_vto),
@@ -249,14 +254,18 @@ def crear_recepcion():
     try:
         data = request.json
         subproceso = data.get("subproceso")
+        codigo_proveedor = data.get("codigo_proveedor")
         proveedor = data.get("proveedor")
+        link_FR = data.get("link_FR")
 
-        if not subproceso or not proveedor:
+        if not subproceso or not proveedor or not codigo_proveedor or not link_FR:
             return jsonify({"error": "⚠️ Complete todos los campos"}), 400
 
         nueva_recepcion = Recepcion(
             subproceso=subproceso,
-            proveedor=proveedor
+            codigo_proveedor=codigo_proveedor,
+            proveedor=proveedor,
+            link_FR=link_FR
         )
         db.session.add(nueva_recepcion)
         db.session.commit()
@@ -277,11 +286,13 @@ def obtener_recepciones():
         "id": r.id,
         "fecha": str(r.fecha),
         "subproceso": r.subproceso,
+        "codigo_proveedor": r.codigo_proveedor,
         "proveedor": r.proveedor,
         "productos": [{
             "codigo": p.codigo,
             "codigo_tango": p.codigo_tango,
             "ins_mat_prod": p.ins_mat_prod,
+            "codigo_proveedor": p.codigo_proveedor,
             "proveedor": p.proveedor,
             "nro_lote": p.nro_lote,
             "fecha_vto": str(p.fecha_vto),
@@ -310,17 +321,20 @@ def obtener_recepcion_con_productos(recepcion_id):
     # ✅ Depuración: Imprimir todos los productos asociados a la recepción
     print(f"📌 Recepción {recepcion.id} encontrada. Productos asociados:")
     for producto in productos_asociados:
-        print(f"🔹 {producto.codigo} - - {producto.nro_partida_asignada} - {producto.ins_mat_prod} - {producto.nro_lote}")
+        print(f"🔹 {producto.codigo} - {producto.nro_partida_asignada} - {producto.ins_mat_prod} - {producto.nro_lote}")
 
     recepcion_json = {
         "id": recepcion.id,
         "fecha": str(recepcion.fecha),
         "subproceso": recepcion.subproceso,
+        "codigo_proveedor": recepcion.codigo_proveedor,
         "proveedor": recepcion.proveedor,
+        "link_FR": recepcion.link_FR,
         "productos": [{
             "codigo": p.codigo,
             "codigo_tango": p.codigo_tango,
             "ins_mat_prod": p.ins_mat_prod,
+            "codigo_proveedor": p.codigo_proveedor,
             "proveedor": p.proveedor,
             "nro_lote": p.nro_lote,
             "fecha_vto": str(p.fecha_vto),
@@ -360,6 +374,7 @@ def agregar_producto_a_recepcion(recepcion_id):
         codigo=codigo,
         codigo_tango=producto_base.codigo_tango,
         ins_mat_prod=producto_base.ins_mat_prod,
+        codigo_proveedor=producto_base.codigo_proveedor,
         proveedor=producto_base.proveedor,
         nro_lote=data.get("nro_lote"),
         fecha_vto=data.get("fecha_vto"),
@@ -378,6 +393,7 @@ def agregar_producto_a_recepcion(recepcion_id):
         "codigo": nuevo_producto.codigo,
         "codigo_tango": nuevo_producto.codigo_tango,
         "ins_mat_prod": nuevo_producto.ins_mat_prod,
+        "codigo_tango": nuevo_producto.codigo_proveedor,
         "proveedor": nuevo_producto.proveedor,
         "nro_lote": nuevo_producto.nro_lote,
         "fecha_vto": nuevo_producto.fecha_vto,
@@ -386,30 +402,6 @@ def agregar_producto_a_recepcion(recepcion_id):
         "nro_partida_asignada": nuevo_producto.nro_partida_asignada,
     })
 
-'''# 📌 Ruta para eliminar un producto de una recepción
-@recepciones_bp.route('/eliminar-producto/<int:producto_id>', methods=['DELETE'])
-@login_required
-def eliminar_producto(producto_id):
-    producto = Producto.query.get(producto_id)
-
-    if not producto:
-        return jsonify({"error": "⚠️ Producto no encontrado"}), 404
-
-    # 📌 Guardar detalles del producto eliminado para el registro
-    producto_eliminado = {
-        "codigo": producto.codigo,
-        "ins_mat_prod": producto.ins_mat_prod,
-        "nro_partida_asignada": producto.nro_partida_asignada
-    }
-
-    # 📌 Eliminar el producto de la base de datos
-    db.session.delete(producto)
-    db.session.commit()
-
-    return jsonify({
-        "mensaje": "✅ Producto eliminado correctamente",
-        "producto_eliminado": producto_eliminado,
-    })'''
 
 @recepciones_bp.route('/eliminar-producto/<int:producto_id>', methods=['DELETE'])
 @login_required

@@ -38,9 +38,10 @@ document.addEventListener("DOMContentLoaded", function () {
             const codigoTango = document.getElementById("codigo_tango").value.trim();
             const cat_partida = document.getElementById("cat_partida").value.trim();
             const insMatProd = document.getElementById("ins_mat_prod").value.trim();
+            const codigo_proveedor = document.getElementById("codigo_proveedor").value.trim();
             const proveedor = document.getElementById("proveedor").value.trim();
 
-            if (!codigoBase || !codigoTango || !cat_partida || !insMatProd || !proveedor) {
+            if (!codigoBase || !codigoTango || !cat_partida || !insMatProd || !codigo_proveedor || !proveedor) {
                 alert("⚠️ Todos los campos son obligatorios.");
                 return;
             }
@@ -50,6 +51,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 codigo_tango: codigoTango,
                 cat_partida: cat_partida,
                 ins_mat_prod: insMatProd,
+                codigo_proveedor: codigo_proveedor,
                 proveedor: proveedor
             };
 
@@ -108,6 +110,7 @@ async function cargarProductosBase() {
                 <td>${producto.codigo_tango}</td>
                 <td>${producto.cat_partida}</td>
                 <td>${producto.ins_mat_prod}</td>
+                <td>${producto.codigo_proveedor}</td>
                 <td>${producto.proveedor}</td>
                 <td>
                     <button onclick="modificarProductoBase('${producto.codigo_base}')"><i class="fa-solid fa-pen-to-square"></i></button>
@@ -143,6 +146,7 @@ async function modificarProductoBase(codigoBase) {
         document.getElementById("edit_codigo_tango").value = producto.codigo_tango;
         document.getElementById("edit_cat_partida").value = producto.cat_partida;  // 🔹 Ahora correctamente asignado
         document.getElementById("edit_ins_mat_prod").value = producto.ins_mat_prod;
+        document.getElementById("edit_codigo_proveedor").value = producto.codigo_proveedor;
         document.getElementById("edit_proveedor").value = producto.proveedor;
 
         // Guardar el código base original en un atributo `data-codigo-original`
@@ -167,10 +171,11 @@ async function guardarCambiosProductoBase() {
         codigo_tango: document.getElementById("edit_codigo_tango").value.trim(),
         cat_partida: document.getElementById("edit_cat_partida").value.trim(),  // ✅ Ahora correctamente asignado
         ins_mat_prod: document.getElementById("edit_ins_mat_prod").value.trim(),
+        codigo_proveedor: document.getElementById("edit_codigo_proveedor").value.trim(),
         proveedor: document.getElementById("edit_proveedor").value.trim(),
     };
 
-    if (!productoEditado.codigo_base || !productoEditado.codigo_tango || !productoEditado.ins_mat_prod || !productoEditado.proveedor) {
+    if (!productoEditado.codigo_base || !productoEditado.codigo_tango || !productoEditado.ins_mat_prod || !productoEditado.codigo_proveedor || !productoEditado.proveedor) {
         alert("⚠️ Todos los campos son obligatorios.");
         return;
     }

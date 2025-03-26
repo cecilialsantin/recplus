@@ -936,6 +936,13 @@ tbody tr:hover {
     background-color: rgba(149, 206, 165, 0.3);
 }
 
+.tabla-detalle-recepcion th {
+    background-color: #7d85ac;
+    color: white;
+    font-weight: 500;
+    font-size: 1em;
+}
+
 /* 🔹 Botón para procesar carga automática */
 .btn-procesar {
     width: 20%;
@@ -1094,6 +1101,31 @@ tbody tr:hover {
     transition: background 0.2s ease-in-out;
 }
 
+.filtros-fecha-proveedor {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 15px;
+    border: 2px solid #b2d9bf; /* Verde clarito */
+    border-radius: 8px;
+    background-color: #f7fcf9; /* Fondo muy suave */
+    margin-bottom: 15px;
+}
+
+.filtros-fecha-proveedor label {
+    font-weight: bold;
+    color: #4d774e;
+    margin-right: 5px;
+}
+
+.filtros-fecha-proveedor input[type="date"] {
+    border: 1px solid #b2d9bf;
+    padding: 5px 8px;
+    border-radius: 5px;
+    outline: none;
+    background-color: #fff;
+}
+
 .btn-volver:hover {
     background-color: #9a8e99;
 }
@@ -1127,7 +1159,7 @@ tbody tr:hover {
     background:#8bb398;
     border: none;
     color: black;
-    font-size: 1em;
+    font-size: 0.8em;
     cursor: pointer;
     padding: 10px;
     border-radius: 10px;
@@ -1141,7 +1173,7 @@ tbody tr:hover {
 
 .btn-listaprodeliminados i{
     margin-right:4px;
-    font-size: 20px;
+    font-size: 15px;
     color:#9a8e99;
     font-weight: 800px;
 }
@@ -1150,7 +1182,7 @@ tbody tr:hover {
     background:#8bb398;
     border: none;
     color: black;
-    font-size: 1em;
+    font-size: 0.8em;
     cursor: pointer;
     padding: 10px;
     border-radius: 10px;
@@ -1164,7 +1196,7 @@ tbody tr:hover {
 
 .btn-borrarlistaeliminados i{
     margin-right: 4px;
-    font-size: 20px;
+    font-size: 15px;
     color:#9a8e99;
     font-weight: 800px;
 }
@@ -1173,10 +1205,36 @@ tbody tr:hover {
     display: flex; /* Usa flexbox */
     justify-content: center; /* Centra horizontalmente los botones */
     align-items: center; /* Alinea verticalmente */
-    gap: 15px; /* Espacio entre los botones */
-    background: #4e6e5d; /* Color de fondo tipo barra */
-    padding: 10px 20px; /* Espaciado interno */
+    gap: 10px; /* Espacio entre los botones */
+    background:#9a8e99; /* Color de fondo tipo barra */
+    padding: 8px 16px; /* Espaciado interno */
     border-radius: 8px; /* Bordes redondeados */
-    margin: 15px auto; /* Centra el div */
+    margin: 10px auto; /* Centra el div */
     width: fit-content; /* Ajusta al contenido */
 }
+
+/* boton copy */
+.btn-clipboard {
+    all: unset;
+    cursor: pointer;
+    display: inline-block;
+    margin-left: 3px;
+    font-size: 1em;
+    color: inherit;
+    vertical-align: middle;
+    font-size: smaller;
+    color: #4b5c82
+}
+
+.btn-clipboard:hover i {
+    color: #72bc65;;
+    transform: scale(1.1);
+}
+
+td .btn-clipboard {
+    border: none !important;
+    background: none !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+}
+
