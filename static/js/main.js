@@ -131,7 +131,7 @@ async function cargarUsuarios() {
                 <td>${usuario.username}</td>
                 <td>${usuario.rol}</td>
                 <td>
-                    <button onclick="eliminarUsuario('${usuario.username}')">🗑️ Eliminar</button>
+                    <button onclick="eliminarUsuario('${usuario.username}')" class="btn-eliminar"><i class="fas fa-trash"></i></button>
                 </td>
             `;
             tabla.appendChild(fila);

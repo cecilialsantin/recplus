@@ -288,6 +288,7 @@ def obtener_recepciones():
         "subproceso": r.subproceso,
         "codigo_proveedor": r.codigo_proveedor,
         "proveedor": r.proveedor,
+        "link_FR": r.link_FR,
         "productos": [{
             "codigo": p.codigo,
             "codigo_tango": p.codigo_tango,

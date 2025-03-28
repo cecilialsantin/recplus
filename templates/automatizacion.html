@@ -6,19 +6,34 @@
 
 <div class="welcome-bar">
     <h2>Automatización LOYAL</h2>
-
-    <button class="btn-procesar" onclick="iniciarSelenium()"><i class="fa-solid fa-robot"></i>
-        Loyal QMS</button>
 </div>
   
+<!-- 🔹 Panel unificado para ID + botones + simulacro + log -->
+<div class="form-box">
+    <h3>Ingrese el ID de la Recepción</h3>
+    <input type="text" id="id-recepcion" placeholder="Ejemplo: 123">
+    <button onclick="cargarYMostrarRecepcion()"><i class="fa-solid fa-box-open"></i> Cargar Recepción</button>
+    <p id="mensaje-carga"></p>
 
-    <!-- Formulario para ingresar el código del formulario en Loyal -->
-    <div class="form-box">
-        <h3>Ingrese el ID de la Recepción</h3>
-        <input type="text" id="id-recepcion" placeholder="Ejemplo: 123">
-        <button onclick="cargarYMostrarRecepcion()"><i class="fa-solid fa-box-open"></i> Cargar Recepción</button>
-        <p id="mensaje-carga"></p>
+    <!-- 🔹 Botones simulación + confirmación -->
+    <div class="acciones-lealtad" style="margin-top: 20px;">
+        <button onclick="simularEnvioLoyal()" id="btn-simular" class="btn-procesar">
+            <i class="fa-solid fa-robot"></i> Pre-Envio Loyal
+        </button>
+        <button onclick="confirmarEnvioLoyal()" id="btn-confirmar" class="btn-procesar" style="display:none">
+            <i class="fa-solid fa-check"></i> Confirmar Envío
+        </button>
     </div>
+
+    <!-- 🔹 Resultado de simulacro -->
+    <div id="resultado-envio" class="resultado-envio" style="margin-top: 20px;"></div>
+
+    <!-- 🔹 Bitácora -->
+    <div id="log-envios" class="bitacora-envios" style="margin-top: 30px;">
+        <h4>Historial de Envíos</h4>
+        <ul id="log-lista"></ul>
+    </div>
+</div>
 
 <!-- Tabla general de datos de la recepción -->
 <table class="tabla-detalle-recepcion" style="margin-bottom: 20px;" id="fila-datos-recepcion">
@@ -60,10 +75,10 @@
             </tbody>
         </table>
     </div>
+
       <!-- Botón de Volver -->
       <button class="btn-volver" onclick="window.location.href='/home'">
         <i class="fas fa-arrow-left"></i> Volver
     </button>
-    
 
 {% endblock %}

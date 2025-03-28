@@ -129,8 +129,6 @@ def eliminar_productoBase(codigo_base):
 @login_required
 def buscar_proveedor(consulta):
     """Busca proveedores en ProductoBase que coincidan con la consulta del usuario"""
-    if current_user.rol != "admin":
-        return jsonify({"error": "⚠️ Acceso denegado"}), 403
 
     # Buscar coincidencias que contengan la consulta en cualquier parte del nombre
     proveedores = ProductoBase.query.filter(ProductoBase.proveedor.ilike(f"%{consulta}%")).all()

@@ -163,3 +163,101 @@ function copiarTexto(texto) {
         alert("✅ Copiado al portapapeles");
     });
 }
+
+async function simularEnvioLoyal() {
+    const id = document.getElementById("id-recepcion").value.trim();
+    const mensaje = document.getElementById("mensaje-carga");
+    const div = document.getElementById("resultado-envio");
+
+    if (!id) return alert("⚠️ Ingrese un ID válido");
+
+    mensaje.textContent = "⏳ Simulando envío a Loyal...";
+    mensaje.style.color = "gray";
+    div.innerHTML = "";
+
+    try {
+        const res = await fetch(`/automatizacion/enviar-loyal/${id}?dry_run=true`, { method: "POST" });
+        const data = await res.json();
+
+        if (!res.ok) throw new Error(data.error || "Error inesperado");
+
+        mensaje.textContent = "✅ Simulación completada.";
+        mensaje.style.color = "green";
+
+        div.innerHTML = `
+        <h3>Estás por enviar a Loyal los siguientes productos</h3>
+        <table class="tabla-simulacion">
+            <thead>
+                <tr>
+                    <th>Producto</th>
+                    <th>Estado</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${data.resultados.map(r => `
+                    <tr>
+                        <td>
+                            <strong>${r.authorId} - ${r.ins_mat_prod}</strong><br>
+                            <small style="color: #666;">Código: ${r.codigo} · Partida: ${r.nro_partida_asignada}</small>
+                        </td>
+                        <td style="color: orange; font-weight: bold;">${r.status}</td>
+                    </tr>
+                `).join("")}
+            </tbody>
+        </table>
+    `;
+    
+
+        document.getElementById("btn-confirmar").style.display = "inline-block";
+
+    } catch (error) {
+        mensaje.textContent = `❌ ${error.message}`;
+        mensaje.style.color = "red";
+    }
+}
+
+async function confirmarEnvioLoyal() {
+    const id = document.getElementById("id-recepcion").value.trim();
+    const mensaje = document.getElementById("mensaje-carga");
+    const div = document.getElementById("resultado-envio");
+
+    if (!id) return alert("⚠️ Ingrese un ID válido");
+
+    mensaje.textContent = "⏳ Enviando a Loyal...";
+    mensaje.style.color = "gray";
+    div.innerHTML = "";
+
+    try {
+        const res = await fetch(`/automatizacion/enviar-loyal/${id}?dry_run=false`, { method: "POST" });
+        const data = await res.json();
+
+        if (!res.ok) throw new Error(data.error || "Error inesperado");
+
+        mensaje.textContent = "✅ Envío finalizado.";
+        mensaje.style.color = "green";
+        div.innerHTML = `<h4>✅ Envío Realizado:</h4>`;
+        div.innerHTML += '<table><thead><tr><th>Producto</th><th>Estado</th><th>Detalle</th></tr></thead><tbody>';
+        data.resultados.forEach(r => {
+            const color = r.status === "CREADO" ? "green" : "red";
+            div.innerHTML += `<tr><td>${r.producto}</td><td style="color:${color}">${r.status}</td><td>${r.detalle || '-'}</td></tr>`;
+        });
+        div.innerHTML += '</tbody></table>';
+        
+        // ✅ Deshabilitar el botón
+        document.getElementById("btn-confirmar").disabled = true;
+        document.getElementById("btn-confirmar").innerText = "✅ Envío Confirmado";
+
+    } catch (error) {
+        mensaje.textContent = `❌ ${error.message}`;
+        mensaje.style.color = "red";
+    }
+}
+// 📌 Log de historial
+const log = document.getElementById("log-lista");
+const timestamp = new Date().toLocaleString();
+const total = data.resultados.length;
+const creados = data.resultados.filter(r => r.status === "CREADO").length;
+
+const li = document.createElement("li");
+li.innerHTML = `📦 <strong>${timestamp}</strong> - Recepción <strong>#${id}</strong> → ${creados} / ${total} creados`;
+log.prepend(li);
