@@ -179,6 +179,12 @@ async function simularEnvioLoyal() {
         const res = await fetch(`/automatizacion/enviar-loyal/${id}?dry_run=true`, { method: "POST" });
         const data = await res.json();
 
+        if (data.error) {
+            mensaje.textContent = `❌ ${data.error}`;
+            mensaje.style.color = "red";
+            return;
+        }
+
         if (!res.ok) throw new Error(data.error || "Error inesperado");
 
         mensaje.textContent = "✅ Simulación completada.";
