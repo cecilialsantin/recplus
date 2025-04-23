@@ -1,72 +1,80 @@
-**RecPlus**
+# **RecPlus**
 
 Sistema de escaneo y automatización de carga en **Loyal QMS** con **Flask, MySQL y una interfaz web en HTML+JS**.
 
+---
+
 ## **📌 Descripción del Proyecto**  
 RecPlus es una aplicación que permite **automatizar la carga de datos de productos** en **Loyal QMS** a través del escaneo de códigos de barras.  
-✅ Escanea productos con un **lector de código de barras Gadnic Inalámbrico 1D/2D/QR**.  
-✅ Obtiene automáticamente **nombre, lote, fecha de vencimiento y proveedor** desde la base de datos.  
-✅ Registra cada escaneo en **MySQL** para trazabilidad.  
-✅ Permite **verificar y enviar** los datos a Loyal QMS de manera automática.  
+
+✅ Escanea productos con un **lector de código de barras Gadnic Inalámbrico 1D/2D/QR**  
+✅ Obtiene automáticamente **nombre, lote, fecha de vencimiento y proveedor** desde la base de datos  
+✅ Registra cada escaneo en **MySQL** para trazabilidad  
+✅ Permite **verificar, simular y confirmar** el envío a **Loyal QMS** usando su **API oficial**
 
 ---
 
-## **🛠️ Tecnologías Utilizadas**  
+## **🛠️ Tecnologías Utilizadas**
+
 📌 **Backend:**  
-- **Python + Flask** → API para manejar el escaneo de productos.  
-- **SQLAlchemy (ORM)** → Gestión de la base de datos en MySQL.  
-- **dotenv** → Variables de entorno para configuración segura.  
+- **Python + Flask** → API para manejar la lógica del sistema  
+- **SQLAlchemy (ORM)** → Manejo de la base de datos en MySQL  
+- **dotenv** → Variables de entorno seguras  
+- **API REST Loyal** → Envío de datos a través del endpoint proporcionado por LOYAL Solutions para la creacion de formularios
 
 📌 **Base de Datos:**  
-- **MySQL** → Almacena los productos y el historial de escaneos.  
+- **MySQL** → Registro de productos y escaneos  
 
 📌 **Frontend:**  
-- **HTML + JavaScript (Fetch API)** → Interfaz para escanear y mostrar datos en tiempo real.  
-- **CSS (Opcional)** → Para mejorar el diseño de la interfaz.  
-
-📌 **Automatización Opcional:**  
-- **Selenium** → Para automatizar la carga de datos en **Loyal QMS**.  
+- **HTML + JavaScript (Fetch API)** → Interfaz interactiva en tiempo real  
+- **CSS personalizado** → Para estilizar la aplicación
 
 ---
 
-## **📂 Estructura del Proyecto**
-```
-recplus/
-│── envrecplus/          # Entorno virtual (no se sube a Git)
-│── app.py               # Archivo principal de Flask
-│── config.py            # Configuración de la base de datos y variables de entorno
-│── models.py            # Modelos de SQLAlchemy para la base de datos
-│── routes.py            # Rutas de la API
-│── templates/           # Carpeta para HTML (Frontend)
-│   ├── index.html       # Interfaz web
-│── static/              # Carpeta para archivos JS y CSS
-│   ├── script.js        # Lógica del frontend
-│── requirements.txt     # Dependencias de Python
-│── .env                 # Variables de entorno (NO subir a Git)
-│── .gitignore           # Archivos ignorados por Git
-│── README.md            # Documentación del proyecto
+## **📂 Cómo ejecutar el proyecto localmente**
+
+```bash
+# 1. Clonar el repositorio
+git clone https://github.com/usuario/recplus.git
+cd recplus
+
+# 2. Crear entorno virtual
+python3 -m venv env
+source env/bin/activate  # En Windows: env\Scripts\activate
+
+# 3. Instalar dependencias
+pip install -r requirements.txt
+
+# 4. Configurar el archivo .env
+cp .env.example .env
+# 👉 Completar las variables: DB, LOYAL_API_URL, LOYAL_USERNAME, LOYAL_PASSWORD
+
+# 5. Ejecutar la app
+python3 app.py
 ```
 
 ---
 
-## **📌 API - Endpoints**  
-📌 **Buscar un Producto Escaneado**  
+## **📌 API - Endpoints**
+
+### Buscar un Producto Escaneado  
 ```http
 GET /escanear?codigo=1234567890123
 ```
-📌 **Ejemplo de Respuesta JSON**  
+
+### Ejemplo de Respuesta JSON  
 ```json
 {
-  "codigo": "xxx",
-  "nombre": "xxx",
-  "lote": "xxx",
-  "fecha_vencimiento": "xxxx",
-  "proveedor": "xxxx",
+  "codigo": "1234567890123",
+  "nombre": "Producto Test",
+  "lote": "L123",
+  "fecha_vencimiento": "2030-01-01",
+  "proveedor": "Proveedor SRL",
   "mensaje": "✅ Producto encontrado y escaneo registrado."
 }
 ```
 
-📌 **Si el producto no existe:**  
+### Si el producto no existe:  
 ```json
 {
   "error": "⚠️ Producto no encontrado en la base de datos."
@@ -75,15 +83,18 @@ GET /escanear?codigo=1234567890123
 
 ---
 
-## **📌 Próximos Pasos**  
-✅ Implementar la carga automática en **Loyal QMS** con **Selenium**.  
-✅ Mejorar el **frontend en Vercel** para que funcione en múltiples dispositivos.  
-✅ Agregar **historial de escaneos** en la interfaz web.  
+## **📌 Próximos Pasos**
+
+✅ Finalizar integración con API de Loyal  
+✅ Probar envío completo de formularios  
+🟡 Crear historial de envíos visual en interfaz  
+🟡 Mejorar manejo de errores visuales y logs
 
 ---
 
-## **📜 Licencia**  
+## **📜 Licencia**
+
 📌 Proyecto desarrollado por **Cecilia Santin** para la gestión de productos en **Loyal QMS**.  
-📌 Código abierto bajo la **licencia MIT**.  
+📌 Código abierto bajo la **licencia MIT**.
 
 ---
