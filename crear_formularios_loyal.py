@@ -53,23 +53,40 @@ def crear_formularios_loyal(recepcion, productos):
 
         if dry_run:
             resultados.append({
-    "codigo": producto.codigo,
-    "ins_mat_prod": producto.ins_mat_prod,
-    "nro_partida_asignada": producto.nro_partida_asignada,
-    "authorId": author_id,
-    "status": "DRY_RUN",
-    "payload": payload
-})
-
-            #resultados.append({"producto": producto.codigo, "status": "DRY_RUN", "payload": payload})
+                "codigo": producto.codigo,
+                "ins_mat_prod": producto.ins_mat_prod,
+                "nro_partida_asignada": producto.nro_partida_asignada,
+                "authorId": author_id,
+                "status": "DRY_RUN",
+                "payload": payload
+            })
         else:
             try:
                 response = requests.post(LOYAL_API_URL, json=payload, headers=headers)
                 if response.ok:
-                    resultados.append({"producto": producto.codigo, "status": "CREADO", "respuesta": response.json()})
+                    try:
+                        resultados.append({
+                            "producto": producto.codigo,
+                            "status": "CREADO",
+                            "respuesta": response.json()
+                        })
+                    except ValueError:
+                        resultados.append({
+                            "producto": producto.codigo,
+                            "status": "ERROR",
+                            "detalle": f"Respuesta no JSON: {response.text}"
+                        })
                 else:
-                    resultados.append({"producto": producto.codigo, "status": "ERROR", "detalle": response.text})
+                    resultados.append({
+                        "producto": producto.codigo,
+                        "status": "ERROR",
+                        "detalle": response.text
+                    })
             except Exception as e:
-                resultados.append({"producto": producto.codigo, "status": "EXCEPTION", "detalle": str(e)})
+                resultados.append({
+                    "producto": producto.codigo,
+                    "status": "EXCEPTION",
+                    "detalle": str(e)
+                })
 
     return resultados
