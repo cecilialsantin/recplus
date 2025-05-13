@@ -134,6 +134,9 @@ async function simularEnvioLoyal() {
 
         document.getElementById("btn-confirmar").style.display = "inline-block";
 
+        agregarAlHistorial(data, id, "Simulación");
+
+
     } catch (error) {
         mensaje.textContent = `❌ ${error.message}`;
         mensaje.style.color = "red";
@@ -159,17 +162,44 @@ async function confirmarEnvioLoyal() {
 
         mensaje.textContent = "✅ Envío finalizado.";
         mensaje.style.color = "green";
-        div.innerHTML = `<h4>✅ Envío Realizado:</h4>`;
-        div.innerHTML += '<table><thead><tr><th>Producto</th><th>Estado</th><th>Detalle</th></tr></thead><tbody>';
-        data.resultados.forEach(r => {
-            const color = r.status === "CREADO" ? "green" : "red";
-            div.innerHTML += `<tr><td>${r.producto}</td><td style="color:${color}">${r.status}</td><td>${r.detalle || '-'}</td></tr>`;
-        });
-        div.innerHTML += '</tbody></table>';
+        div.innerHTML = `<h4>✅ Se crearon los siguientes formularios:</h4>`;
+      let html = `
+<h4 style="color:green;">✅ Se crearon los siguientes formularios:</h4>
+<table style="border-collapse: collapse; width: 100%;">
+    <thead style="background-color: #d0e9c6;">
+        <tr>
+            <th style="border: 1px solid #ccc;">Recepción_ID</th>
+            <th style="border: 1px solid #ccc;">Código</th>
+            <th style="border: 1px solid #ccc;">Producto</th>
+            <th style="border: 1px solid #ccc;">Partida</th>
+            <th style="border: 1px solid #ccc;">Estado</th>
+        </tr>
+    </thead>
+    <tbody>
+`;
+
+data.resultados.forEach(r => {
+    const color = r.status === "CREADO" ? "green" : "red";
+    html += `
+        <tr>
+            <td style="border: 1px solid #ccc;">${id}</td>
+            <td style="border: 1px solid #ccc;">${r.codigo || '-'}</td>
+            <td style="border: 1px solid #ccc;">${r.ins_mat_prod || '-'}</td>
+            <td style="border: 1px solid #ccc;">${r.nro_partida_asignada || '-'}</td>
+            <td style="border: 1px solid #ccc; color:${color}; font-weight:bold;">${r.status}</td>
+        </tr>
+    `;
+});
+
+html += '</tbody></table>';
+div.innerHTML = html;
+
         
         // ✅ Deshabilitar el botón
         document.getElementById("btn-confirmar").disabled = true;
         document.getElementById("btn-confirmar").innerText = "✅ Envío Confirmado";
+        agregarAlHistorial(data, id, "Envío");
+
 
     } catch (error) {
         mensaje.textContent = `❌ ${error.message}`;
@@ -177,11 +207,13 @@ async function confirmarEnvioLoyal() {
     }
 }
 // 📌 Log de historial
-const log = document.getElementById("log-lista");
-const timestamp = new Date().toLocaleString();
-const total = data.resultados.length;
-const creados = data.resultados.filter(r => r.status === "CREADO").length;
+function agregarAlHistorial(data, id, tipo) {
+    const log = document.getElementById("log-lista");
+    const timestamp = new Date().toLocaleString();
+    const total = data.resultados.length;
+    const creados = data.resultados.filter(r => r.status === "CREADO").length;
 
-const li = document.createElement("li");
-li.innerHTML = `📦 <strong>${timestamp}</strong> - Recepción <strong>#${id}</strong> → ${creados} / ${total} creados`;
-log.prepend(li);
+    const li = document.createElement("li");
+    li.innerHTML = `📦 <strong>${timestamp}</strong> - ${tipo} recepción <strong>#${id}</strong> → ${creados} / ${total}`;
+    log.prepend(li);
+}

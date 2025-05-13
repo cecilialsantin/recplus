@@ -1,5 +1,6 @@
 import os
 import requests
+import json
 from flask import request
 from flask_login import current_user
 from dotenv import load_dotenv
@@ -31,27 +32,30 @@ def crear_formularios_loyal(recepcion, productos):
             "password": LOYAL_PASSWORD,
             "abstractFormId": 7,
             "formTypeId": 66,
-            "code": "",
+            "code": "***",
             "authorId": author_id,
             "companyId": 1,
-            "title": f"{producto.ins_mat_prod} - {recepcion.id}",
-            "scopesCodes": ["RECEPCION"],
-            "issuingScopeCode": "RECEPCION",
-            "reference": [
-                {"referenceID": 158, "values": [str(recepcion.fecha)]},
-                {"referenceID": 126, "values": [recepcion.subproceso]},
-                {"referenceID": 110, "values": [recepcion.codigo_proveedor]},
-                {"referenceID": 408, "values": [str(producto.temperatura)]},
-                {"referenceID": 111, "values": [producto.codigo_tango]},
-                {"referenceID": 143, "values": [str(producto.cantidad_ingresada)]},
-                {"referenceID": 147, "values": [producto.nro_partida_asignada]},
-                {"referenceID": 115, "values": [producto.nro_lote]},
-                {"referenceID": 136, "values": [str(producto.fecha_vto)]},
-                {"referenceID": 419, "values": [recepcion.link_FR]},
+            "title": f"RecPlus - {producto.ins_mat_prod} - {recepcion.id}",
+            "scopesCodes": ["REC"],
+            "issuingScopeCode": "REC",
+            "key": "deposito@felsan.com.ar",
+            "references": [
+                {"referenceId": 158, "values": [str(recepcion.fecha)]},
+                {"referenceId": 126, "values": [recepcion.subproceso]},
+                {"referenceId": 110, "values": [recepcion.codigo_proveedor]},
+                {"referenceId": 408, "values": [str(producto.temperatura)]},
+                {"referenceId": 111, "values": [producto.codigo_tango]},
+                {"referenceId": 143, "values": [str(producto.cantidad_ingresada)]},
+                {"referenceId": 147, "values": [producto.nro_partida_asignada]},
+                {"referenceId": 115, "values": [producto.nro_lote]},
+                {"referenceId": 136, "values": [str(producto.fecha_vto)]},
+                {"referenceId": 419, "values": [recepcion.link_FR]},
             ]
         }
 
         if dry_run:
+            print("\n📦 PRE-ENVÍO JSON →")
+            print(json.dumps(payload, indent=2, ensure_ascii=False))
             resultados.append({
                 "codigo": producto.codigo,
                 "ins_mat_prod": producto.ins_mat_prod,
@@ -68,6 +72,9 @@ def crear_formularios_loyal(recepcion, productos):
                         resultados.append({
                             "producto": producto.codigo,
                             "status": "CREADO",
+                            "codigo": producto.codigo,
+                            "ins_mat_prod": producto.ins_mat_prod,
+                            "nro_partida_asignada": producto.nro_partida_asignada,                            
                             "respuesta": response.json()
                         })
                     except ValueError:
