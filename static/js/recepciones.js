@@ -283,26 +283,39 @@ document.addEventListener("DOMContentLoaded", function () {
 
             if (response.ok) {
                 datalist.innerHTML = ""; // Limpiar opciones previas
-                listaProveedores = proveedores.map(prov => prov.proveedor); // Guardar la lista de proveedores
+                listaProveedores = proveedores.map(prov => {
+                return {
+                    nombre: prov.proveedor,
+                    codigo: prov.codigo_proveedor || ""
+                };
+            });
 
-                proveedores.forEach(prov => {
-                    const option = document.createElement("option");
-                    option.value = prov.proveedor; // Mostrar el nombre exacto del proveedor registrado
-                    datalist.appendChild(option);
-                });
+            datalist.innerHTML = "";
+            listaProveedores.forEach(prov => {
+                const option = document.createElement("option");
+                option.value = prov.nombre;
+                datalist.appendChild(option);
+            });
+
             }
         } catch (error) {
             console.error("❌ Error al buscar proveedores:", error);
         }
     });
 
-    // 📌 Validar que el proveedor seleccionado existe en la lista
+    //Validar que el proveedor esta en la lista
     proveedorInput.addEventListener("change", function () {
-        if (!listaProveedores.includes(this.value)) {
-            alert("⚠️ Seleccione un proveedor válido de la lista.");
-            this.value = ""; // Limpiar el input si no es válido
-        }
-    });
+    const seleccionado = listaProveedores.find(p => p.nombre === this.value);
+    if (!seleccionado) {
+        alert("⚠️ Seleccione un proveedor válido de la lista.");
+        this.value = "";
+        document.getElementById("codigo_proveedor").value = "";
+        return;
+    }
+    // ✅ Autocompletar código proveedor
+    document.getElementById("codigo_proveedor").value = seleccionado.codigo;
+});
+
 });
 
 // 📌 Función para crear una recepción y asociarle productos
