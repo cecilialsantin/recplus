@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block title %}RecPlus - Administración{% endblock %}
+
+{% block content %}
+<div class="welcome-bar">
+    <h2>
+        <i class="fas fa-user-shield"></i>
+        Bienvenido, <span id="username-display"></span> (Administrador)
+    </h2>
+    <button class="logout-btn" onclick="logout()">
+        <i class="fas fa-sign-out-alt"></i> Logout
+    </button>
+</div>
+
+<div class="admin-home-buttons">
+    <button class="admin-btn" onclick="window.location.href='/admin/usuarios'">
+        <i class="fas fa-user-plus"></i> Gestionar Usuarios
+    </button>
+
+    <button class="admin-btn" onclick="window.location.href='/admin/productosBase'">
+        <i class="fas fa-box"></i> Productos Base
+    </button>
+</div>
+
+{% endblock %}

@@ -10,10 +10,24 @@ def index():
     return render_template('index.html')
 
 # 📌 Página de Home después del Login
+
 @main_bp.route('/home')
 @login_required
 def home():
-    return render_template('home.html')
+    match current_user.rol:
+        case "deposito":
+            return render_template("home.html")
+        case "mesa_ayuda":
+            return render_template("home_md.html")
+        case "admin":
+            return render_template("home_admin.html")
+        case _:
+            return "⚠️ Rol no reconocido", 403
+
+#@main_bp.route('/home')
+#@login_required
+#def home():
+    #return render_template('home.html')
 
 # 📌 Cerrar sesión
 @main_bp.route('/logout', methods=['POST'])
@@ -48,8 +62,8 @@ def register():
     password = data.get("password")
     rol = data.get("rol")
 
-    if not rol or rol not in ["deposito", "garantia"]:
-        return jsonify({"error": "⚠️ El rol debe ser 'deposito' o 'garantia'"}), 400
+    if not rol or rol not in ["admin", "deposito", "garantia", "mesa_ayuda"]:
+        return jsonify({"error": "⚠️ El rol debe ser 'deposito' o 'garantia' o 'admin' o 'mesa_ayuda'"}), 400
 
     if Usuario.query.filter_by(username=username).first():
         return jsonify({"error": "⚠️ Este usuario ya existe."}), 400

@@ -191,7 +191,7 @@ body {
 .admin-btn {
     background: transparent;
     border: none;
-    color: #f6d9f2;
+    color: #dae4d9;
     font-size: 0.9em;
     padding:5px;
     cursor: pointer;
@@ -1244,7 +1244,7 @@ tbody tr:hover {
 }
 
 .btn-clipboard:hover i {
-    color: #72bc65;;
+    color: #72bc65;
     transform: scale(1.1);
 }
 
@@ -1255,3 +1255,15 @@ td .btn-clipboard {
     box-shadow: none !important;
 }
 
+/*Estilos para home_admin*/
+
+ .admin-home-buttons {
+        display: flex;
+        gap: 20px;
+        margin-top: 40px;
+        justify-content: center;
+        background-color: #c1a3be;
+        padding: 20px;
+        border-radius: 8px;
+        border: 2px solid #72bc65
+    }

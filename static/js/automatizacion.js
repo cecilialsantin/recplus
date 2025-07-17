@@ -168,7 +168,7 @@ async function confirmarEnvioLoyal() {
 <table style="border-collapse: collapse; width: 100%;">
     <thead style="background-color: #d0e9c6;">
         <tr>
-            <th style="border: 1px solid #ccc;">Recepción_ID</th>
+            <th style="border: 1px solid #ccc;">Rec_ID</th>
             <th style="border: 1px solid #ccc;">Código</th>
             <th style="border: 1px solid #ccc;">Producto</th>
             <th style="border: 1px solid #ccc;">Partida</th>

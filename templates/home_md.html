@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}HelpDeskPlus - Dashboard{% endblock %}
+
+{% block content %}
+
+<!-- 🔹 Barra superior -->
+<div class="welcome-bar">
+    <h2>
+        <i class="fas fa-user"></i>
+        <span id="username-display"></span>
+    </h2>
+
+    <button class="logout-btn" onclick="logout()">
+        <i class="fas fa-sign-out-alt"></i> Logout
+    </button>
+
+    <label for="chat-file" class="btn-subir-chat">
+        <i class="fas fa-upload"></i> Subir Chat.txt
+    </label>
+    <input type="file" id="chat-file" accept=".txt" style="display: none;">
+
+    <button class="btn-ver-formularios" onclick="alert('🚧 En construcción')">
+        <i class="fas fa-folder-open"></i> Ver Formularios Creados
+    </button>
+</div>
+
+<!-- 🔹 Resultado de la carga del archivo -->
+<div id="resultado-chat" class="resultado-envio" style="margin-top: 20px;"></div>
+
+{% endblock %}
